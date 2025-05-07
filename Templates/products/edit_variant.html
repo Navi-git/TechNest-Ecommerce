@@ -1,0 +1,48 @@
+{% extends "partials/admin_base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="content-main">
+  <div class="row">
+    <div class="col-9">
+      <div class="content-header">
+         <h2 class="content-title">Edit Variant</h2>
+      </div>
+    </div>
+    <div class="col-lg-9">
+       <div class="card mb-4">
+         <div class="card-header">
+           <h4>Variant Details</h4>
+         </div>
+         <div class="card-body">
+           <form method="post">
+             {% csrf_token %}
+             <div class="mb-3">
+                <label for="variant_name" class="form-label">Variant Name</label>
+                <input type="text" class="form-control" id="variant_name" name="variant_name" value="{{ variant.variant_name }}" required>
+             </div>
+             <div class="mb-3">
+                <label for="price" class="form-label">Price</label>
+                <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ variant.price }}" required>
+             </div>
+             <div class="mb-3">
+                <label for="discount" class="form-label">Discount</label>
+                <input type="number" step="0.01" class="form-control" id="discount" name="discount" value="{{ variant.discount }}" required>
+             </div>
+             <div class="mb-3">
+                <label for="stock" class="form-label">Stock</label>
+                <input type="number" class="form-control" id="stock" name="stock" value="{{ variant.stock }}" required>
+             </div>
+             <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="is_default" name="is_default" {% if variant.is_default %} checked {% endif %}>
+                <label class="form-check-label" for="is_default">Set as Default</label>
+             </div>
+             <button type="submit" class="btn btn-primary">Update Variant</button>
+             <a href="{% url 'products:edit_product' variant.product.id %}" class="btn btn-secondary">Cancel</a>
+           </form>
+         </div>
+       </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

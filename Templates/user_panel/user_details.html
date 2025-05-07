@@ -1,0 +1,47 @@
+{% extends 'partials/base.html' %}
+{% load static%}
+{% block content %}
+<div class="card mb-3 mb-lg-0">
+    {% for address in user_address %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ address.id }}" style="transition: background-color 0.3s, color 0.3s" onmouseover="this.style.backgroundColor='black'; this.style.color='white';" onmouseout="this.style.backgroundColor=''; this.style.color='';">
+            <button class="accordion-button collapsed black-hover-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ address.id }}" aria-expanded="false" aria-controls="collapse{{ address.id }}">
+            <input type="checkbox" class="form-check-input me-2 address-checkbox" id="address_{{ address.id }}" data-address-id="{{ address.id }}" {% if address.status %}checked{%endif%} /> {{ address.name }}</button>
+      </h2>
+      <div
+        id="collapse{{ address.id }}"
+        class="accordion-collapse collapse"
+        aria-labelledby="heading{{ address.id }}"
+        data-bs-parent="#accordionExample">
+        <div class="accordion-body">
+          <address>
+            <p class="mb-1">
+              <strong>House Name:</strong> {{ address.house_name}}
+            </p>
+            <p class="mb-1">
+              <strong>Street Name:</strong> {{ address.street_name}}
+            </p>
+            <p class="mb-1">
+              <strong>Pin Number:</strong> {{ address.pin_number}}
+            </p>
+            <p class="mb-1">
+              <strong>District:</strong> {{ address.district }}
+            </p>
+            <p class="mb-1">
+              <strong>State:</strong> {{ address.state }}
+            </p>
+            <p class="mb-1">
+              <strong>Phone Number:</strong> {{ address.phone_number }}
+            </p>
+            <p class="mb-1">
+              <strong>Country:</strong> {{ address.country }}
+            </p>
+          </address>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <p>No addresses found.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Razorpay Payment</title>
+    <style>
+        /* Basic reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Card container */
+        .payment-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+        }
+        /* Header styling */
+        .payment-card h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        /* Razorpay logo styling */
+        .payment-card .logo {
+            margin-bottom: 10px;
+        }
+        .payment-card .logo img {
+            height: 50px;
+        }
+        /* Button styling */
+        .razorpay-payment-button {
+            background-color: #F37254;
+            border: none;
+            color: #fff;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        .razorpay-payment-button:hover {
+            background-color: #d95745;
+        }
+        /* Fallback submit button styling (if needed) */
+        .backup-button {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-card">
+        <div class="logo">
+            <!-- Razorpay logo (you may replace the src with the official Razorpay logo URL) -->
+            <img src="{% static "images/razorpay-icon.svg" %}" alt="Razorpay Logo">
+        </div>
+        <h2>Payment</h2>
+        <form action="{{ callback_url }}" method="POST">
+            {% csrf_token %}
+            <script
+                src="https://checkout.razorpay.com/v1/checkout.js"
+                data-key="{{ razorpay_merchant_key }}"
+                data-amount="{{ amount }}"
+                data-currency="{{ currency }}"
+                data-order_id="{{ razorpay_order_id }}"
+                data-buttontext="Pay with Razorpay"
+                data-name="Technest"
+                data-description="Test Transaction"
+                data-image="https://yourdomain.com/logo.png"
+                data-prefill.name="Naveen"
+                data-prefill.email="crownnaveens@gmail.com"
+                data-theme.color="#F37254">
+            </script>
+            <!-- Fallback button for non-JavaScript environments -->
+            <input type="hidden" name="order_id" value="{{ razorpay_order_id }}">
+            <input type="submit" value="Pay Now" class="backup-button">
+        </form>
+    </div>
+</body>
+</html>

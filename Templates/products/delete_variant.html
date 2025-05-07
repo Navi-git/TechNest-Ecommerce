@@ -1,0 +1,29 @@
+{% extends "partials/admin_base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="content-main">
+  <div class="row">
+    <div class="col-9">
+      <div class="content-header">
+         <h2 class="content-title">Delete Variant</h2>
+      </div>
+    </div>
+    <div class="col-lg-9">
+       <div class="card mb-4">
+         <div class="card-header">
+           <h4>Confirm Deletion</h4>
+         </div>
+         <div class="card-body">
+           <p>Are you sure you want to delete the variant <strong>{{ variant.variant_name }}</strong>?</p>
+           <form method="post">
+             {% csrf_token %}
+             <button type="submit" class="btn btn-danger">Yes, Delete Variant</button>
+             <a href="{% url 'products:edit_product' variant.product.id %}" class="btn btn-secondary">Cancel</a>
+           </form>
+         </div>
+       </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

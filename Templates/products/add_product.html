@@ -1,0 +1,211 @@
+{% extends "partials/admin_base.html" %}
+{% load static %}
+
+{% block css %}
+<style>
+    /* Ensure each preview container has some space */
+    #previewContainer > div {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        display: inline-block;
+        margin-right: 10px;
+    }
+</style>
+{% endblock css %}
+
+{% block content %}
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Add New Product</h2>
+            </div>
+        </div>
+        <div class="col-lg-9">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Basic</h4>
+                </div>
+                {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <form id="productForm" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="name" class="form-label">Product title</label>
+                            <input type="text" placeholder="Type here" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="slug" class="form-label">Slug</label>
+                            <input type="text" placeholder="Optional" class="form-control" id="slug" name="slug">
+                        </div>
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Full description</label>
+                            <textarea id="description" name="description" placeholder="Type here" class="form-control" rows="4" required></textarea>
+                        </div>
+
+                        <!-- Removed product-level price, discount, and stock fields -->
+
+                        <div class="mb-4">
+                            <label for="highlights" class="form-label">Highlights</label>
+                            <textarea id="highlights" name="highlights" placeholder="Type here (Click enter after each highlight for bullet points)" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <label for="is_active" class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <span class="form-check-label"> Is Active </span>
+                        </label>
+                        <!-- Removed "Require Variants" checkbox as variants are now required -->
+
+                        <div class="col-lg-12">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h4>Organization</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row gx-2">
+                                        <div class="mb-4">
+                                            <label for="category" class="form-label">Category</label>
+                                            <select class="form-select" id="category" name="category" required>
+                                                <option value="">Select Category</option>
+                                                {% for category in categories %}
+                                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label for="brand" class="form-label">Brand</label>
+                                            <select class="form-select" id="brand" name="brand" required>
+                                                <option value="">Select Brand</option>
+                                                {% for brand in brands %}
+                                                    <option value="{{ brand.id }}">{{ brand.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div> <!-- row end -->
+                                </div>
+                            </div> <!-- card end -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h4>Media</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-upload">
+                                        <img src="{% static 'adminside/assets/imgs/theme/upload.svg' %}" alt="">
+                                        <!-- Image Upload and Cropping -->
+                                        <input class="form-control" type="file" id="product_images" name="product_images[]" multiple accept="image/*"><br><br>
+                                        <div id="previewContainer"></div>
+                                        <input type="hidden" name="cropped_images" id="croppedImagesInput">
+                                    </div>
+                                </div>
+                            </div> <!-- card end -->
+
+                            <!-- Variant Section (Always Visible) -->
+                            <div id="variant-section" style="margin-top: 20px;">
+                                <h3>Product Variants</h3>
+                                <div id="variant-container">
+                                    <!-- Variant block (one variant input group) -->
+                                    <div class="variant-item">
+                                        <label>Variant Name:</label>
+                                        <input type="text" name="variant_name[]" placeholder="e.g., Red, XL" required />
+
+                                        <label>Variant Price:</label>
+                                        <input type="number" step="0.01" name="variant_price[]" required />
+
+                                        <label>Discount:</label>
+                                        <input type="number" step="0.01" name="variant_discount[]" value="0.00" />
+
+                                        <label>Stock:</label>
+                                        <input type="number" name="variant_stock[]" required />
+
+                                        <label>Set as Default:</label>
+                                        <input type="checkbox" name="variant_default[]" value="on">
+                                    </div>
+                                </div>
+                                <!-- Button to add additional variant groups -->
+                                <button type="button" id="add-more-variant">Add More Variant</button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-md rounded font-sm hover-up">Publish Product</button>
+                    </form>
+                    <a href="{% url 'products:admin_product_list' %}" class="btn">🔙 Back</a>
+                </div>
+            </div> <!-- card end -->
+        </div>
+    </div>
+</section> <!-- content-main end -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let cropperInstances = [];
+    let croppedImages = [];
+    
+    document.getElementById('product_images').addEventListener('change', function (event) {
+        const previewContainer = document.getElementById('previewContainer');
+        previewContainer.innerHTML = '';  // Clear previous previews
+        croppedImages = [];  // Reset the cropped images array
+        
+        Array.from(event.target.files).forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.maxWidth = '200px';
+                img.style.display = 'block';
+                img.style.marginBottom = '10px';
+                
+                const div = document.createElement('div');
+                div.style.marginBottom = '20px';
+                div.appendChild(img);
+                previewContainer.appendChild(div);
+                
+                const cropper = new Cropper(img, {
+                    aspectRatio: NaN,
+                    viewMode: 2,
+                    autoCropArea: 0.8,
+                    crop(event) {
+                        croppedImages[index] = {
+                            image: cropper.getCroppedCanvas().toDataURL()
+                        };
+                    }
+                });
+                cropperInstances[index] = cropper;
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+    
+    document.getElementById('productForm').addEventListener('submit', function (event) {
+        document.getElementById('croppedImagesInput').value = JSON.stringify(croppedImages);
+    });
+</script>
+<script>
+    // Add a new variant block when the "Add More Variant" button is clicked
+    document.getElementById('add-more-variant').addEventListener('click', function() {
+      var container = document.getElementById('variant-container');
+      var newVariant = document.createElement('div');
+      newVariant.className = 'variant-item';
+      newVariant.innerHTML = `
+        <label>Variant Name:</label>
+        <input type="text" name="variant_name[]" placeholder="e.g., Blue, L" required />
+        <label>Variant Price:</label>
+        <input type="number" step="0.01" name="variant_price[]" required />
+        <label>Discount:</label>
+        <input type="number" step="0.01" name="variant_discount[]" value="0.00" />
+        <label>Stock:</label>
+        <input type="number" name="variant_stock[]" required />
+        <label>Set as Default:</label>
+        <input type="checkbox" name="variant_default[]" value="on">
+      `;
+      container.appendChild(newVariant);
+    });
+</script>
+{% endblock %}

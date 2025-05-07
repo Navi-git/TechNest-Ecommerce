@@ -1,0 +1,113 @@
+
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block content %}
+<div style="margin-left:400px; width:800px">
+    <div style="margin-top:30px;" class="r">
+        <h2>Add Address</h2>
+    </div>
+    <div class="card-body">
+        <form method="post" name="edit_address_form" action="{% url 'user_panel:add_address' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label>Name <span class="required">*</span></label>
+                    <input required class="form-control square" name="name" type="text" value="{{ users.name }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>House Name <span class="required">*</span></label>
+                    <input required class="form-control square" name="house_name" value="{{ users.house_name }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Street Name <span class="required">*</span></label>
+                    <input required class="form-control square" name="street_name" type="text" value="{{ users.street_name }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Pin Number <span class="required">*</span></label>
+                    <input required class="form-control square" name="pin_number" value="{{ users.pin_number }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>District <span class="required">*</span></label>
+                    <input required class="form-control square" name="district" type="text" value="{{ users.district }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>State <span class="required">*</span></label>
+                    <input required class="form-control square" name="state" value="{{ users.state }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Country <span class="required">*</span></label>
+                    <input required class="form-control square" name="country" type="text" value="{{ users.country }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Phone Number <span class="required">*</span></label>
+                    <input required class="form-control square" name="phone_number" value="{{ users.phone_number }}">
+                </div>
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="status" {% if users.status %}checked{% endif %}>
+                    <label class="form-check-label" for="is_active">Status</label>
+                </div>
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                "{{ message }}",
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'success',
+                title: message,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+    {% endif %}
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                {
+                    type: "{{ message.tags }}",  // assuming message.tags contains the type ('success', 'error', etc.)
+                    text: "{{ message }}"
+                },
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: message.type === 'error' ? 'error' : 'success',  // Show error icon for error messages
+                title: message.text,
+                showConfirmButton: false,
+                timer: 3000,
+                background: message.type === 'error' ? '#f8d7da' : '', // Optional: customize background color for errors
+                color: message.type === 'error' ? '#721c24' : ''       // Optional: customize text color for errors
+            });
+        });
+    {% endif %}
+});
+</script>
+{% endblock %}

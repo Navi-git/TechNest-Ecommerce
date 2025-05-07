@@ -1,0 +1,179 @@
+{% extends "partials/base.html" %}
+{% load static %}
+{% load thumbnail %}
+
+{% block content %}
+<div class="container my-5">
+    <h1>Shop</h1>
+</div>
+
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="{% url "homeapp:home" %}" rel="nofollow">Home</a>
+                <span></span> Shop
+            </div>
+        </div>
+    </div>
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row flex-row-reverse">
+                <div class="col-lg-9">
+                    <div class="shop-product-fillter">
+                        <div class="totall-product">
+                            <p>We found <strong class="text-brand">{{ products.paginator.count }}</strong> items for you!</p>
+                        </div>
+                        <div class="sort-by-product-area">
+                            <form method="get" id="sorting-form">
+                                {# Preserve existing filters #}
+                                {% for key, value in request.GET.items %}
+                                    {% if key != 'sort_by' %}
+                                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                    {% endif %}
+                                {% endfor %}
+                                <select name="sort_by" class="form-select" onchange="document.getElementById('sorting-form').submit();">
+                                    <option value="" {% if not request.GET.sort_by %}selected{% endif %}>Sort by:</option>
+                                    <option value="all" {% if request.GET.sort_by == 'all' %}selected{% endif %}>All Products</option>
+                                    <option value="is_active" {% if request.GET.sort_by == 'is_active' %}selected{% endif %}>Featured</option>
+                                    <option value="price_low_high" {% if request.GET.sort_by == 'price_low_high' %}selected{% endif %}>Price: Low to High</option>
+                                    <option value="price_high_low" {% if request.GET.sort_by == 'price_high_low' %}selected{% endif %}>Price: High to Low</option>
+                                    <option value="release_date" {% if request.GET.sort_by == 'release_date' %}selected{% endif %}>Release Date</option>
+                                    <option value="rating" {% if request.GET.sort_by == 'rating' %}selected{% endif %}>Avg. Rating</option>
+                                </select>
+                            </form>
+                            
+                        </div>
+                    </div>
+                    <div class="row product-grid-3">
+                        {% for product in products %}
+                        <div class="col-lg-4 col-md-4 col-12 col-sm-6">
+                            <div class="product-cart-wrap mb-30">
+                                <div class="product-img-action-wrap">
+                                    <div class="product-thumbanil product-img product-img-zoom">
+                                        <a href="{% url 'products:product_detail' product.id %}">
+                                            {% if product.thumbnail %}
+                                                {% thumbnail product.thumbnail "300x250" crop="center" as thumb %} 
+                                                    <img src="{{ thumb.url }}" alt="{{ product.name }}">
+                                                {% endthumbnail %}
+                                            {% else %}
+                                                <img src="{% static 'images/default_product.png' %}" alt="No image available">
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                    <div class="product-action-1">
+                                        <a aria-label="Quick view" class="action-btn hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-search"></i></a>
+                                        <a aria-label="Add To Wishlist" class="action-btn hover-up" href="#"><i class="fi-rs-heart"></i></a>
+                                        <a aria-label="Compare" class="action-btn hover-up" href="#"><i class="fi-rs-shuffle"></i></a>
+                                    </div>
+                                    <div class="product-badges product-badges-position product-badges-mrg">
+                                        {% if product.is_new %}
+                                        <span class="new">New</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="product-content-wrap">
+                                    <div class="product-category">
+                                        <a href="#">{{ product.category.name }}</a>
+                                    </div>
+                                    <h2><a href="{% url 'products:product_detail' product.id %}">{{ product.name }}</a></h2>
+                                    <div class="rating">
+                                        <span>⭐ {{ product.average_rating|floatformat:1 }}/5</span> 
+                                        <span>({{ product.review_count }} reviews)</span>
+                                    </div>
+                                    <div class="product-price">
+                                        {% with default_variant=product.get_default_variant %}
+                                            {% if default_variant %}
+                                                {% if default_variant.discount > 0 %}
+                                                    <span class="text-brand">₹{{ default_variant.final_price|floatformat:2 }}</span>
+                                                    <br>
+                                                    <small class="text-danger">
+                                                        <del>₹{{ default_variant.price|floatformat:2 }}</del>
+                                                    </small>
+                                                    <br>
+                                                    <small class="text-success">
+                                                        ({{ default_variant.discount_percentage }}% Off)
+                                                    </small>
+                                                {% else %}
+                                                    <span>₹{{ default_variant.price|floatformat:2 }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span>N/A</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="product-action-1 show">
+                                        <a aria-label="Add To Cart" class="action-btn hover-up" href="#"><i class="fi-rs-shopping-bag-add"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="pagination-area mt-15 mb-sm-5 mb-lg-0">
+                        {% if products.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-start">
+                                {% if products.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">&laquo;</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">&lsaquo;</a>
+                                </li>
+                                {% endif %}
+                                {% for num in products.paginator.page_range %}
+                                <li class="page-item {% if products.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">{{ num }}</a>
+                                </li>
+                                {% endfor %}
+                                {% if products.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">&rsaquo;</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ products.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">&raquo;</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- Sidebar -->
+                <div class="col-lg-3 primary-sidebar sticky-sidebar">
+                    <!-- Category Filters -->
+                    <div class="widget-category mb-30">
+                        <h5 class="section-title style-1 mb-30">Categories</h5>
+                        <ul class="categories">
+                            {% for category in categories %}
+                            <li>
+                                <a href="?category={{ category.id }}{% for key, value in request.GET.items %}{% if key != 'category' %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}">
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                        
+                        </ul>
+                    </div>
+                    <!-- Price Filter -->
+                    <div class="sidebar-widget price_range range mb-30">
+                        <h5 class="widget-title mb-10">Filter by Price</h5>
+                        <form method="get">
+                            {% for key, value in request.GET.items %}
+                                {% if key != 'min_price' and key != 'max_price' %}
+                                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                {% endif %}
+                            {% endfor %}
+                            <input type="number" name="min_price" placeholder="Min Price" value="{{ request.GET.min_price }}" class="form-control">
+                            <input type="number" name="max_price" placeholder="Max Price" value="{{ request.GET.max_price }}" class="form-control mt-2">
+                            <button type="submit" class="btn btn-sm btn-default mt-2"><i class="fi-rs-filter mr-5"></i>Filter</button>
+                        </form>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}

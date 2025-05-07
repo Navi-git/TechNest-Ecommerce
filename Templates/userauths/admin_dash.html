@@ -1,0 +1,269 @@
+{% extends "partials/admin_base.html" %}
+{% load static %}
+{% block content %}
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Dashboard </h2>
+                    <p>Whole data about your business here</p>
+                </div>
+                <div>
+                    <a href="{% url "userauths:sales_report" %}" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Sales report</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <span class="icon icon-sm rounded-circle bg-primary-light"><i class="text-primary material-icons md-monetization_on"></i></span>
+                            <div class="text">
+                                <h6 class="mb-1 card-title">Revenue</h6>
+                                <span>₹{{ revenue|floatformat:2 }}</span>
+                                <span class="text-sm">
+                                    Total Revenue
+                                </span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <span class="icon icon-sm rounded-circle bg-success-light"><i class="text-success material-icons md-local_shipping"></i></span>
+                            <div class="text">
+                                <h6 class="mb-1 card-title">Orders</h6> <span>{{ orders_count }}</span>
+                                <span class="text-sm">
+                                    Excluding orders in transit
+                                </span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <span class="icon icon-sm rounded-circle bg-warning-light"><i class="text-warning material-icons md-qr_code"></i></span>
+                            <div class="text">
+                                <h6 class="mb-1 card-title">Discounts</h6> <span>₹{{ total_discount|floatformat:2 }}</span>
+                                <span class="text-sm">
+                                    Total Discount
+                                </span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <span class="icon icon-sm rounded-circle bg-info-light"><i class="text-info material-icons md-shopping_basket"></i></span>
+                            <div class="text">
+                                <h6 class="mb-1 card-title">Monthly Earning</h6> <span>₹{{ monthly_earnings|floatformat:2 }}</span>
+                                <span class="text-sm">
+                                    Based in your local time.
+                                </span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xl-8 col-lg-12">
+                    <div class="card mb-4">
+                        <article class="card-body">
+                            <h5 class="card-title">Sale statistics</h5>
+                            <canvas id="orderChart"></canvas>
+                        </article>
+                    </div>
+                    
+                </div>
+                <div class="col-xl-4 col-lg-12">
+                    <div class="card mb-4">
+                        <article class="card-body">
+                            <h4 class="card-title">Monthly User Registrations</h4>
+                            <canvas id="userChart"></canvas>
+                        </article>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><a href="{% url "userauths:best_selling_products" %}">Best Selling Product</a></span>
+                                <span class="text-sm">
+                                </span>
+                                
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><a href="{% url "userauths:best_selling_category" %}">Best Selling Category</a></span>
+                                <span class="text-sm">
+                                </span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><a href="{% url "userauths:best_selling_brands" %}">Best Selling Brands</a></span>
+                                <span class="text-sm">
+                                </span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                
+            </div>
+           
+        </section> <!-- content-main end// -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+        
+        <script>
+            Chart.register(ChartDataLabels);
+        
+            const orderCtx = document.getElementById('orderChart').getContext('2d');
+            const userCtx = document.getElementById('userChart').getContext('2d');
+        
+            const orderGradient = orderCtx.createLinearGradient(0, 0, 0, 400);
+            orderGradient.addColorStop(0, 'rgba(54, 162, 235, 0.8)');
+            orderGradient.addColorStop(1, 'rgba(54, 162, 235, 0.1)');
+        
+            const userGradient = userCtx.createLinearGradient(0, 0, 0, 400);
+            userGradient.addColorStop(0, 'rgba(255, 99, 132, 0.8)');
+            userGradient.addColorStop(1, 'rgba(255, 99, 132, 0.1)');
+        
+            const commonOptions = {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 5,
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                        borderRadius: 4,
+                        backgroundColor: (context) => context.dataset.borderColor,
+                        font: {
+                            weight: 'bold',
+                        },
+                        formatter: (value) => Math.round(value),
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)',
+                        },
+                    },
+                    x: {
+                        grid: {
+                            display: true,
+                        },
+                    },
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeInOutSine',
+                },
+            };
+
+            function generateWaveData(length) {
+                const data = [];
+                const frequency = 0.1;
+                const amplitude = 10;
+                for (let i = 0; i < length; i++) {
+                    data.push(amplitude * Math.sin(frequency * i) + Math.random() * 10);
+                }
+                return data;
+            }
+
+            new Chart(orderCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ chart_labels|safe }},
+                    datasets: [{
+                        label: 'Number of Orders',
+                        data: {{ chart_data|safe }},
+                        backgroundColor: orderGradient,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 3,
+                        fill: 'start',
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: {
+                            display: true,
+                            text: 'Monthly Order Trends',
+                            font: {
+                                size: 18,
+                                weight: 'bold',
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 30,
+                            },
+                        },
+                    },
+                }
+            });
+        
+            new Chart(userCtx, {
+                type: 'bar',
+                // User Chart
+                data: {
+                    labels: {{ user_labels|safe }},
+                    datasets: [{
+                        label: 'New User Registrations',
+                        data: {{ user_data|safe }},
+                        backgroundColor: userGradient,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2,
+                        borderRadius: 5,
+                        barThickness: 20,
+                        maxBarThickness: 30,
+                    }]
+                },
+
+                options: {
+                    ...commonOptions,
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: {
+                            display: true,
+                            text: 'Monthly User Registrations',
+                            font: {
+                                size: 18,
+                                weight: 'bold',
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 20,
+                            },
+                        },
+                    },
+                },
+            });
+        </script>
+{% endblock %}

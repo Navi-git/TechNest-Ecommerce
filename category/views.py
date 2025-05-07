@@ -1,0 +1,184 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.utils.text import slugify
+from .models import Category
+from django.core.exceptions import ValidationError
+from .validators import validate_image_size, validate_no_leading_trailing_spaces, validate_category_name
+from userauths.decorators import role_required
+
+
+@role_required(['admin'])
+def list_categories(request):
+    categories = Category.objects.all()
+    return render(request, 'category/category_list.html', {'categories': categories})
+
+@role_required(['admin'])
+def add_category(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "")
+        description = request.POST.get("description", "")
+        image = request.FILES.get("image")
+        parent_id = request.POST.get('parent')
+
+        errors = []
+
+        # Name Validations
+        if not name:
+            errors.append("Category name is required.")
+        elif len(name) > 100:
+            errors.append("Category name should not exceed 100 characters.")
+        else:
+            try:
+                validate_no_leading_trailing_spaces(name)  # Prevents leading/trailing spaces
+                validate_category_name(name)  # Ensures only letters, numbers, and spaces
+                
+            except ValidationError as e:
+                errors.extend(e.messages)
+
+        # Check if category name already exists
+        if Category.objects.filter(name=name).exists():
+            errors.append("Category name already exists.")
+
+        # Description Validation
+        # Validate description for leading/trailing spaces before stripping
+        if description:
+            try:
+                validate_no_leading_trailing_spaces(description)
+            except ValidationError as e:
+                errors.extend(e.messages)
+        
+        description = description.strip()
+
+        if not description:
+            errors.append("Description is required")
+        elif description and len(description) < 10:
+            errors.append("Description must be at least 10 characters long.")
+
+        # Image Validation
+        if image:
+            try:
+                validate_image_size(image)
+            except ValidationError as e:
+                errors.append(e.message)
+
+        # Display Errors
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, "category/add_category.html", {'categories': Category.objects.filter(parent=None)})
+
+        parent = Category.objects.get(id=parent_id) if parent_id else None
+
+        # Save Category
+        Category.objects.create(
+            name=name,
+            slug=slugify(name),
+            description=description,
+            parent=parent,
+            image=image
+        )
+        messages.success(request, "Category added successfully!")
+        return redirect('category:admin_category_list')
+
+    categories = Category.objects.filter(parent=None)  # Fetch main categories
+    return render(request, 'category/add_category.html', {'categories': categories})
+
+@role_required(['admin'])
+def edit_category(request, category_id):
+    from .models import Category
+
+    category = get_object_or_404(Category, id=category_id)
+
+    if request.method == "POST":
+        name = request.POST.get("name", "")
+        description = request.POST.get("description", "")
+        image = request.FILES.get("image")
+        parent_id = request.POST.get("parent")
+
+        errors = []
+
+        # Validate name for leading/trailing spaces before stripping
+        try:
+            validate_no_leading_trailing_spaces(name)
+        except ValidationError as e:
+            errors.extend(e.messages)
+
+        # Validate description for leading/trailing spaces before stripping
+        if description:
+            try:
+                validate_no_leading_trailing_spaces(description)
+            except ValidationError as e:
+                errors.extend(e.messages)
+
+        # Strip spaces after validation
+        name = name.strip()
+        description = description.strip()
+
+        # Name validation
+        if not name:
+            errors.append("Category name is required.")
+        elif len(name) > 100:
+            errors.append("Category name should not exceed 100 characters.")
+        else:
+            try:
+                validate_category_name(name)
+            except ValidationError as e:
+                errors.extend(e.messages)
+
+        # Unique category name validation (excluding current category)
+        if Category.objects.filter(name=name).exclude(id=category.id).exists():
+            errors.append("Category name already exists.")
+
+        # Description validation
+        if description and len(description) < 10:
+            errors.append("Description must be at least 10 characters long.")
+
+        # Image validation
+        if image:
+            try:
+                validate_image_size(image)
+            except ValidationError as e:
+                errors.append(e.message)
+
+        # Display errors in the template
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, "category/edit_category.html", {"category": category})
+
+        # Update category
+        category.name = name
+        category.slug = slugify(name)
+        category.description = description
+        if image:
+            category.image = image  # Update image if a new one is uploaded
+        category.parent = Category.objects.get(id=parent_id) if parent_id else None
+
+        category.save()
+
+        messages.success(request, "Category updated successfully!")
+        return redirect("category:admin_category_list")
+
+    categories = Category.objects.filter(parent=None).exclude(id=category.id)  # Prevent selecting itself as parent
+    return render(request, "category/edit_category.html", {"category": category, "categories": categories})
+
+@role_required(['admin'])
+def toggle_category_status(request, category_id):
+    from .models import Category
+    category = Category.objects.get(id=category_id)
+    category.is_active = not category.is_active
+    category.save()
+    return redirect('category:admin_category_list')
+
+
+@role_required(['admin'])
+def delete_category(request, category_id):
+    from .models import Category
+    # Fetch the category or return 404 if not found
+    category = get_object_or_404(Category, id=category_id)
+    
+    # Delete the category
+    category.delete()
+
+    # Redirect back to the admin categories page
+    return redirect('category:admin_category_list')

@@ -1,0 +1,172 @@
+{% extends "partials/base.html" %}
+
+{% block content %}
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="{% url "homeapp:home" %}" rel="nofollow">Home</a>
+                <span></span> <a href="{% url "products:shop_list" %}" rel="nofollow">Shop</a>
+                <span></span> <a href="#" rel="nofollow">Wishlist</a>
+            </div>
+        </div>
+    </div>
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    {% if wishlist_items %}
+                    <div class="table-responsive">
+                        <table class="table shopping-summery text-center">
+                            <thead>
+                                <tr class="main-heading">
+                                    <th scope="col" colspan="2">Product</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Stock Status</th>
+                                    <th scope="col">Action</th>
+                                    <th scope="col">Remove</th>
+                                </tr>
+                                
+                            </thead>
+                            <tbody id="wishlist-tbody">
+                                {% for item in wishlist_items %}
+                                <tr data-variant-id="{{ item.variant.id }}" data-product-id="{{ item.variant.product.id }}">
+
+                                    <td class="image product-thumbnail">
+                                        <img src="{{ item.thumbnail }}" alt="{{ item.variant.product.name }}">
+                                    </td>
+                                    <td class="product-des product-name">
+                                        <h5 class="product-name">
+                                            <a href="{% url 'products:product_detail' item.variant.product.id %}">
+                                                {{ item.variant.product.name }} - {{ item.variant.variant_name }}
+                                            </a>
+                                        </h5>
+                                        <p class="font-xs">{{ item.variant.product.description|truncatewords:15 }}</p>
+                                    </td>
+                                    <td class="price" data-title="Price"><span>₹{{ item.variant.final_price }}</span></td>
+                                    <td class="text-center" data-title="Stock">
+                                        {% if item.variant.stock > 0 %}
+                                            <span class="color3 font-weight-bold">In Stock</span>
+                                        {% else %}
+                                            <span class="text-danger font-weight-bold">Out of stock</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-right" data-title="Cart">
+                                        <button class="btn btn-sm btn-add-to-cart">
+                                            <i class="fi-rs-shopping-bag mr-5"></i>Add to cart
+                                        </button>
+                                    </td>
+                                    <td class="action" data-title="Remove">
+                                        <a class="btn-remove-item" href="javascript:void(0);"><i class="fi-rs-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <p>Total items: <span id="wishlist-count">{{ wishlist_items|length }}</span></p>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; font-family: sans-serif; padding: 40px; height: 290px; margin-top:50px;">
+                        <h1 style="font-size: 36px; margin: 10px 0;">YOUR WISHLIST IS EMPTY!</h1>
+                        
+                    
+                        <div style="margin-top: 40px;">
+                            <a href="{% url 'products:shop_list' %}" style="background: #ff4136; color: white; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                                Shop Now
+                            </a>
+                        </div>
+                    </div>
+                    
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+// CSRF utility: no extra installation required, just native JavaScript
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Check if this cookie string starts with the name we want
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+// Helper function to handle POST requests using the Fetch API
+function postData(url, data) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken,
+        },
+        body: new URLSearchParams(data)
+    })
+    .then(response => response.json());
+}
+
+// Event delegation for "Remove" button and "Add to cart" (wishlist-to-cart)
+document.getElementById('wishlist-tbody').addEventListener('click', function(e) {
+    // Find the clicked row and the variant id
+    const row = e.target.closest('tr');
+    if (!row) return;  // Click not inside a table row
+    const variantId = row.getAttribute('data-variant-id');
+
+    // Remove item when trash icon or link is clicked
+    if (e.target.closest('.btn-remove-item')) {
+        postData("{% url 'wishlist:remove_from_wishlist' %}", { variant_id: variantId })
+            .then(data => {
+                Swal.fire({
+                    icon: data.success ? 'success' : 'error',
+                    title: data.message,
+                    timer: 2000,
+                    showConfirmButton: false,
+                  });
+                if (data.success) {
+                    // Remove the row from the table
+                    row.remove();
+                    // Update the wishlist count
+                    document.getElementById('wishlist-count').textContent = data.wishlist_count;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Move item to cart when "Add to cart" button is clicked
+    if (e.target.closest('.btn-add-to-cart')) {
+        const productId = row.getAttribute('data-product-id');
+        const variantId = row.getAttribute('data-variant-id');
+        postData("{% url 'wishlist:wishlist_to_cart' %}", { 
+            variant_id: variantId,
+            product_id: productId 
+        })
+        .then(data => {
+            Swal.fire({
+                icon: data.success ? 'success' : 'error',
+                title: data.message,
+                timer: 2000,
+                showConfirmButton: false,
+            });
+            if (data.success) {
+                row.remove();
+                document.getElementById('wishlist-count').textContent = data.wishlist_count;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    
+});
+</script>
+
+{% endblock %}

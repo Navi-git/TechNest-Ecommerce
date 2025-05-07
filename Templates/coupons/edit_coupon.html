@@ -1,0 +1,120 @@
+{% extends 'partials/admin_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Coupon</h2>
+    
+    <form method="post" action="{% url 'coupons:edit_coupon' coupon.id %}">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input
+                type="text"
+                class="form-control"
+                name="name"
+                value="{{ form_data.name|default:'' }}"
+            >
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Code</label>
+            <input
+                type="text"
+                class="form-control"
+                name="code"
+                value="{{ form_data.code|default:'' }}"
+            >
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Discount (%)</label>
+            <input
+                type="number"
+                class="form-control"
+                name="discount"
+                value="{{ form_data.discount|default:'' }}"
+            >
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Minimum Purchase</label>
+            <input
+                type="number"
+                class="form-control"
+                name="minimum_purchase"
+                value="{{ form_data.minimum_purchase|default:'' }}"
+            >
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Maximum Discount</label>
+            <input
+                type="number"
+                class="form-control"
+                name="maximum_discount"
+                value="{{ form_data.maximum_discount|default:'' }}"
+            >
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Valid From</label>
+            <input
+                type="datetime-local"
+                class="form-control"
+                name="valid_from"
+                value="{{ form_data.valid_from|default:'' }}"
+            >
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Valid To</label>
+            <input
+                type="datetime-local"
+                class="form-control"
+                name="valid_to"
+                value="{{ form_data.valid_to|default:'' }}"
+            >
+        </div>
+
+        <div class="mb-3 form-check">
+            <input
+                type="checkbox"
+                class="form-check-input"
+                name="status"
+                {% if form_data.status %}checked{% endif %}
+            >
+            <label class="form-check-label">Active</label>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Usage Limit</label>
+            <input
+                type="number"
+                class="form-control"
+                name="usage_limit"
+                value="{{ form_data.usage_limit|default:'' }}"
+            >
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Coupon</button>
+    </form>
+    <a href="{% url 'coupons:coupon_list' %}" class="btn-sm btn-secondary mt-5">Cancel</a>
+</div>
+
+{% if errors %}
+  <script>
+    // Build an HTML list of all errors
+    let errorItems = "";
+    {% for key, msg in errors.items %}
+      errorItems += `<li><strong>{{ key|capfirst }}:</strong> {{ msg }}</li>`;
+    {% endfor %}
+    Swal.fire({
+      icon: "error",
+      title: "Validation Errors",
+      html: `<ul>${errorItems}</ul>`
+    });
+  </script>
+{% endif %}
+{% endblock %}

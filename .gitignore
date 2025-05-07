@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# ENV
+.env
+venv/
+env/
+ENV/
+
+# VSCode settings
+.vscode/
+
+# Pytest / coverage
+.coverage
+htmlcov/
+.cache/
+
+# Migrations (optional – keep if you track them in git)
+*/migrations/__pycache__/
+*.py[cod] 
+# Uncomment the next line if you want to ignore migration files completely
+# */migrations/*.py
+
+# MyPy
+.mypy_cache/
+
+# Pycharm
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db

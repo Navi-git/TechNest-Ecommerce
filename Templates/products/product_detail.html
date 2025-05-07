@@ -1,0 +1,712 @@
+{% extends "partials/base.html" %}
+{% load static %}
+
+{% block css %}
+<style>
+    /* Main image container styles */
+    .product-image-slider {
+        width: 500px; /* Your desired width */
+        height: 380px; /* Your desired height */
+        overflow: hidden; /* Hide any overflow when zoomed */
+        position: relative;
+        background-color: #fff; /* Set container background to white */
+    }
+    .product-image-slider figure {
+        margin: 0;
+        background-color: #fff; /* Ensure each figure also has a white background */
+    }
+    .product-image-slider figure img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Cover container uniformly */
+        transform-origin: center center; /* For proper zoom pivot */
+        transition: transform 0.3s ease;
+    }
+    /* Thumbnail styles */
+    .slider-nav-thumbnails div {
+        display: inline-block;
+        margin: 5px;
+    }
+    .slider-nav-thumbnails img {
+        width: 200px; /* Uniform thumbnail width */
+        height: 100px; /* Uniform thumbnail height */
+        object-fit: cover;
+        cursor: pointer;
+        background-color: #fff; /* Ensure thumbnails have a white background too */
+    }
+
+  </style>
+{% endblock css %}
+
+
+{% block content %}
+
+<section class="mt-50 mb-50">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="product-detail accordion-detail">
+                    <div class="row mb-50">
+
+                        <!-- Left: Image Gallery -->
+                        <div class="col-md-6 col-sm-12 col-xs-12">
+                            <div class="detail-gallery">
+                            <span class="zoom-icon"><i class="fi-rs-search"></i></span>
+                            <!-- Main Slides -->
+                            <div class="product-image-slider">
+                                {% for image in product.images.all %}
+                                <figure class="border-radius-10">
+                                    <img src="{{ image.image.url }}" alt="product image" class="zoomable-image">
+                                </figure>
+                                {% endfor %}
+                            </div>
+                            <!-- Thumbnails -->
+                            <div class="slider-nav-thumbnails pl-15 pr-15">
+                                {% for image in product.images.all %}
+                                <div>
+                                    <img src="{{ image.image.url }}" alt="product image" onclick="changeMainImage(this)">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            </div>
+                        </div>
+                        <!-- End Left: Image Gallery -->
+
+
+                        <!-- Right: Product Details -->
+                        <div class="col-md-6 col-sm-12 col-xs-12">
+                            <div class="detail-info">
+                                <h2 class="title-detail">{{ product.name }}</h2>
+                                <div class="product-detail-rating">
+                                    <div class="pro-details-brand">
+                                        <span>Brand: <a href="#">{{ product.brand.name }}</a></span>
+                                        
+                                    </div>
+
+                                    <div class="product-rate-cover text-end">
+                                        <span class="stars">
+                                          {% for i in "12345" %}
+                                            {% if forloop.counter <= product.average_rating %}
+                                              <i class="fas fa-star"></i>
+                                            {% else %}
+                                              <i class="far fa-star"></i>
+                                            {% endif %}
+                                          {% endfor %}
+                                        </span>
+                                        <span class="font-small ml-5 text-muted"> ({{ product.review_count|default:"0" }} reviews)</span>
+                                      </div>
+                                </div>
+
+
+                                <!-- Pricing Section using Default Variant -->
+                                <!-- Pricing Section using Default Variant -->
+                                {% with default_variant=product.get_default_variant %}
+                                    {% if default_variant %}
+                                        <div class="clearfix product-price-cover">
+                                            <div class="product-price primary-color float-left">
+                                                <ins>
+                                                    <span id="productPrice" class="text-brand">
+                                                        ₹{{ default_variant.final_price|floatformat:2 }}
+                                                    </span>
+                                                </ins>
+                                                {% if default_variant.discount > 0 %}
+                                                    <ins>
+                                                        <span id="oldPrice" class="old-price font-md ml-15">
+                                                            ₹{{ default_variant.price|floatformat:2 }}
+                                                        </span>
+                                                    </ins>
+                                                    <span id="discountPercentage" class="save-price font-md color3 ml-15">
+                                                        ({{ default_variant.discount_percentage }}% Off)
+                                                    </span>
+                                                {% else %}
+                                                    <span id="oldPrice" class="old-price font-md ml-15" style="display: none;"></span>
+                                                    <span id="discountPercentage" class="save-price font-md color3 ml-15" style="display: none;"></span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="clearfix product-price-cover">
+                                            <div class="product-price primary-color float-left">
+                                                <ins>
+                                                    <span id="productPrice" class="text-brand">Price N/A</span>
+                                                </ins>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+
+                                <!-- End Pricing Section -->
+
+
+                                <!-- Variant Tiles -->
+                                {% if product.variants.all %}
+                                <div class="attr-detail attr-size">
+                                    <strong class="mr-10">Select Variant:</strong>
+                                    <ul class="list-filter size-filter font-small">
+                                        {% for variant in product.variants.all %}
+                                            <li class="variant-tile {% if forloop.first %}active{% endif %}"
+                                                data-price="{{ variant.price  }}"
+                                                data-discount="{{ variant.discount }}"
+                                                data-stock="{{ variant.stock }}"
+                                                data-variant-id="{{ variant.id }}">
+                                                <a href="javascript:void(0)">{{ variant.variant_name }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+
+                                <!-- Stock Display -->
+                                <ul class="product-meta font-xs color-grey mt-50">
+                                    <li>
+                                        Availability:
+                                        <span id="productStock" class="in-stock text-success ml-5">
+                                            {% with default_variant=product.get_default_variant %}
+                                                {% if default_variant %}
+                                                    {{ default_variant.stock }} Items In Stock
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            {% endwith %}
+                                        </span>
+                                    </li>
+                                </ul>
+
+                                <div class="bt-1 border-color-1 mt-15 mb-15"></div>
+                                <div class="short-desc mb-30">
+                                    <p>{{ product.description }}</p>
+                                </div>
+
+                                <div class="product_sort_info font-xs mb-30">
+                                    <ul>
+                                        <li class="mb-10"><i class="fi-rs-crown mr-5"></i> 1 Year {{ product.brand.name }} Brand Warranty</li>
+                                        <li class="mb-10"><i class="fi-rs-refresh mr-5"></i> 30 Day Return Policy</li>
+                                        <li><i class="fi-rs-credit-card mr-5"></i> Cash on Delivery available</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Add to Cart Form -->
+                                <form action="{% url 'cart:add_to_cart' product.id %}" method="post" id="add-to-cart-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                    {% with default_variant=product.get_default_variant %}
+                                        {% if default_variant %}
+                                            <input type="hidden" name="variant_id" id="selectedVariant" value="{{ default_variant.id }}">
+                                        {% endif %}
+                                    {% endwith %}
+                                    <input type="hidden" name="quantity" id="selectedQuantity" value="1">
+
+                                    <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                                    <div class="detail-extralink">
+                                        <div class="detail-qty border radius">
+                                            <a href="#" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
+                                            <span class="qty-val" id="quantityDisplay">1</span>
+                                            <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
+                                        </div>
+                                        <div class="product-extra-link2">
+                                            <button type="submit" class="button button-add-to-cart">Add to cart</button>
+                                            <a id="add-to-wishlist-btn" class="action-btn hover-up"
+                                                data-variant-id="{% with default_variant=product.get_default_variant %}{% if default_variant %}{{ default_variant.id }}{% endif %}{% endwith %}"
+                                                href="javascript:void(0)">
+                                                <i class="fi-rs-heart"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                                <!-- End Add to Cart Form -->                                  
+
+
+                                <!-- Product Meta -->
+                                <ul class="product-meta font-xs color-grey mt-50">
+                                    <li class="mb-5">SKU: <a href="#">{{ product.sku }}</a></li>
+                                    <li class="mb-5">Tags: {% for tag in product.tags.all %}<a href="#">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</li>
+                                    <li>
+                                    Availability:
+                                    <span class="in-stock text-primary ml-5">
+                                        {% with default_variant=product.get_default_variant %}
+                                        {% if default_variant %}
+                                            {{ default_variant.stock }} Items In Stock
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                        {% endwith %}
+                                    </span>
+                                    </li>
+                                </ul>
+
+                            </div>
+                            <!-- Detail Info -->
+                        </div>
+                    </div>
+                    <!--Next section-->
+                    <div class="tab-style3">
+                        <ul class="nav nav-tabs text-uppercase">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="Description-tab" data-bs-toggle="tab" href="#Description">Description</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="Additional-info-tab" data-bs-toggle="tab" href="#Additional-info">Additional info</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="Reviews-tab" data-bs-toggle="tab" href="#Reviews">Reviews ({{ product.reviews.count }})</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content shop_info_tab entry-main-content">
+                            <!-- Description Tab -->
+                            <div class="tab-pane fade show active" id="Description">
+                                <div>
+                                    <p>{{ product.description }}</p>
+                                    <h5>Highlights</h5>
+                                    <ul class="product-more-infor mt-30">
+                                        {% for highlight in product.highlights.splitlines %}
+                                            <li><span>{{ highlight}}</span></li>
+                                        {% empty %}
+                                            <li>No highlights available.</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <h4 class="mt-30">Packaging & Delivery</h4>
+                                <hr class="wp-block-separator is-style-wide">
+                                <p>Less lion goodness that euphemistically robin expeditiously bluebird smugly scratched far while thus cackled sheepishly rigid after due one assenting regarding censorious while occasional or this more crane
+                                    went more as this less much amid overhung anathematic because much held one exuberantly sheep goodness so where rat wry well concomitantly.
+                                </p>
+                                <p>Scallop or far crud plain remarkably far by thus far iguana lewd precociously and and less rattlesnake contrary caustic wow this near alas and next and pled the yikes articulate about as less cackled dalmatian
+                                    in much less well jeering for the thanks blindly sentimental whimpered less across objectively fanciful grimaced wildly some wow and rose jeepers outgrew lugubrious luridly irrationally attractively
+                                    dachshund.
+                                </p>
+                            </div>
+
+                            <div class="tab-pane fade" id="Reviews">
+                                <div class="comments-area">
+                                    <div class="row">
+                                        <div class="col-lg-8">
+                                            <h3 class="mb-30">Customer Reviews</h3>
+                                            <div class="comment-list">
+                                                {% for review in product.reviews.all %}
+                                                <div class="single-comment justify-content-between d-flex">
+                                                    <div class="user justify-content-between d-flex">
+                                                        <div class="thumb text-center">
+                                                            <img src="{% static 'userside/assets/imgs/page/avatar-6.jpg' %}" alt="">
+                                                            <h6><a href="#">{{ review.user.username }}</a></h6>
+                                                            <p class="font-xxs">Since {{ review.user.date_joined|date:"Y" }}</p>
+                                                        </div>
+                                                        <div class="desc">
+                                                            <div class="product-rate d-inline-block">
+                                                                <div class="product-rating" style="width:{{ review.rating|floatformat:0 }}0%;">
+                                                                </div>
+                                                            </div>
+                                                            <p>{{ review.comment }}</p>
+                                                            <div class="d-flex justify-content-between">
+                                                                <div class="d-flex align-items-center">
+                                                                    <p class="font-xs mr-30">{{ review.created_at|date:"F d, Y" }}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                {% empty %}
+                                                <p>No reviews yet. Be the first to review this product!</p>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                           
+                        {% if user.is_authenticated %}
+                        <div class="comment-form">
+                            <h4 class="mb-15">Write a Review</h4>
+                            <div class="row">
+                                <div class="col-lg-8 col-md-12">
+                                    <form method="POST" action="{% url 'products:add_review' product.id %}" class="form-contact comment_form" id="commentForm">
+                                        {% csrf_token %}
+                                        <div class="row">
+                                            <div class="col-12 mb-15">
+                                                <label for="rating">Rating:</label>
+                                                <select class="form-control" name="rating" id="rating" required>
+                                                    <option value="5">⭐ 5</option>
+                                                    <option value="4">⭐ 4</option>
+                                                    <option value="3">⭐ 3</option>
+                                                    <option value="2">⭐ 2</option>
+                                                    <option value="1">⭐ 1</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <textarea class="form-control w-100" name="comment" id="comment" cols="30" rows="9" placeholder="Write Comment"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <button type="submit" class="button button-contactForm">Submit Review</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p><a href="{% url 'account_login' %}">Login</a> to write a review.</p>
+                        {% endif %}
+                        
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-60">
+                        <div class="col-12">
+                            <h3 class="section-title style-1 mb-30">Related products</h3>
+                        </div>
+                        <div class="col-12">
+                            <div class="row related-products">
+                                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                                    <div class="product-cart-wrap small hover-up">
+                                        <div class="product-img-action-wrap">
+                                            <div class="product-img product-img-zoom">
+                                                <a href="shop-product-right.html" tabindex="0">
+                                                    <img class="default-img" src="{% static 'userside/assets/imgs/shop/product-2-1.jpg' %}" alt="">
+                                                    <img class="hover-img" src="{% static 'userside/assets/imgs/shop/product-2-2.jpg' %}" alt="">
+                                                </a>
+                                            </div>
+                                            <div class="product-action-1">
+                                                <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
+"><i class="fi-rs-search"></i></a>
+                                                <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
+                                                <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
+                                            </div>
+                                            <div class="product-badges product-badges-position product-badges-mrg">
+                                                <span class="hot">Hot</span>
+                                            </div>
+                                        </div>
+                                        <div class="product-content-wrap">
+                                            <h2><a href="shop-product-right.html" tabindex="0">Ulstra Bass Headphone</a></h2>
+                                            <div class="rating-result" title="90%">
+                                                <span>
+                                                </span>
+                                             </div>
+                                            <div class="product-price">
+                                                <span>$238.85 </span>
+                                                <span class="old-price">$245.8</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                                    <div class="product-cart-wrap small hover-up">
+                                        <div class="product-img-action-wrap">
+                                            <div class="product-img product-img-zoom">
+                                                <a href="shop-product-right.html" tabindex="0">
+                                                    <img class="default-img" src="{% static 'userside/assets/imgs/shop/product-3-1.jpg' %}" alt="">
+                                                    <img class="hover-img" src="{% static 'userside/assets/imgs/shop/product-4-2.jpg' %}" alt="">
+                                                </a>
+                                            </div>
+                                            <div class="product-action-1">
+                                                <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
+"><i class="fi-rs-search"></i></a>
+                                                <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
+                                                <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
+                                            </div>
+                                            <div class="product-badges product-badges-position product-badges-mrg">
+                                                <span class="sale">-12%</span>
+                                            </div>
+                                        </div>
+                                        <div class="product-content-wrap">
+                                            <h2><a href="shop-product-right.html" tabindex="0">Smart Bluetooth Speaker</a></h2>
+                                            <div class="rating-result" title="90%">
+                                                <span>
+                                                </span>
+                                            </div>
+                                            <div class="product-price">
+                                                <span>$138.85 </span>
+                                                <span class="old-price">$145.8</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                                    <div class="product-cart-wrap small hover-up">
+                                        <div class="product-img-action-wrap">
+                                            <div class="product-img product-img-zoom">
+                                                <a href="shop-product-right.html" tabindex="0">
+                                                    <img class="default-img" src="{% static 'userside/assets/imgs/shop/product-4-1.jpg' %}" alt="">
+                                                    <img class="hover-img" src="{% static 'userside/assets/imgs/shop/product-4-2.jpg' %}" alt="">
+                                                </a>
+                                            </div>
+                                            <div class="product-action-1">
+                                                <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
+"><i class="fi-rs-search"></i></a>
+                                                <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
+                                                <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
+                                            </div>
+                                            <div class="product-badges product-badges-position product-badges-mrg">
+                                                <span class="new">New</span>
+                                            </div>
+                                        </div>
+                                        <div class="product-content-wrap">
+                                            <h2><a href="shop-product-right.html" tabindex="0">HomeSpeak 12UEA Goole</a></h2>
+                                            <div class="rating-result" title="90%">
+                                                <span>
+                                                </span>
+                                            </div>
+                                            <div class="product-price">
+                                                <span>$738.85 </span>
+                                                <span class="old-price">$1245.8</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                                    <div class="product-cart-wrap small hover-up mb-0">
+                                        <div class="product-img-action-wrap">
+                                            <div class="product-img product-img-zoom">
+                                                <a href="shop-product-right.html" tabindex="0">
+                                                    <img class="default-img" src="{% static 'userside/assets/imgs/shop/product-5-1.jpg' %}" alt="">
+                                                    <img class="hover-img" src="{% static 'userside/assets/imgs/shop/product-3-2.jpg' %}" alt="">
+                                                </a>
+                                            </div>
+                                            <div class="product-action-1">
+                                                <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
+"><i class="fi-rs-search"></i></a>
+                                                <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
+                                                <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
+                                            </div>
+                                            <div class="product-badges product-badges-position product-badges-mrg">
+                                                <span class="hot">Hot</span>
+                                            </div>
+                                        </div>
+                                        <div class="product-content-wrap">
+                                            <h2><a href="shop-product-right.html" tabindex="0">Dadua Camera 4K 2022EF</a></h2>
+                                            <div class="rating-result" title="90%">
+                                                <span>
+                                                </span>
+                                            </div>
+                                            <div class="product-price">
+                                                <span>$89.8 </span>
+                                                <span class="old-price">$98.8</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="banner-img banner-big wow fadeIn f-none animated mt-50">
+                        <img class="border-radius-10" src="{% static 'userside/assets/imgs/banner/banner-4.png' %}" alt="">
+                        <div class="banner-text">
+                            <h4 class="mb-15 mt-40">Repair Services</h4>
+                            <h2 class="fw-600 mb-20">We're an Apple <br>Authorised Service Provider</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</main>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+  // Update the main image when a thumbnail is clicked.
+  function changeMainImage(element) {
+      // Replace the source of the first image in the slider.
+      const mainImage = document.querySelector('.product-image-slider figure img');
+      if (mainImage) {
+          mainImage.src = element.src;
+      }
+  }
+
+  // Apply a simple zoom effect on hover.
+  document.addEventListener("DOMContentLoaded", function() {
+      const mainImage = document.querySelector('.product-image-slider figure img');
+      if (mainImage) {
+          mainImage.addEventListener("mousemove", function() {
+              mainImage.style.transform = "scale(1.2)";
+          });
+          mainImage.addEventListener("mouseleave", function() {
+              mainImage.style.transform = "scale(1)";
+          });
+      }
+  });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select all variant tiles
+        const variantTiles = document.querySelectorAll('.variant-tile');
+        
+        // Quantity controls
+        const qtyValEl = document.getElementById("quantityDisplay");
+        const qtyInput = document.getElementById("selectedQuantity");
+        let currentStock = 1; // default value
+    
+        // Function to update current stock and reset quantity
+        function updateCurrentStock(newStock) {
+            currentStock = parseInt(newStock) || 1;
+            // Reset quantity to 1 when variant changes
+            qtyValEl.textContent = "1";
+            qtyInput.value = "1";
+        }
+        
+        // Function to update price, stock, and selected variant id
+        function updateProductDetails(tile) {
+            const price = parseFloat(tile.getAttribute('data-price'));
+            const discount = parseFloat(tile.getAttribute('data-discount'));
+            const stock = tile.getAttribute('data-stock');
+            const variantId = tile.getAttribute('data-variant-id');
+            // If discount > 0, use discount directly as the final selling price
+            const effectivePrice = discount > 0 ? discount : price;
+            
+            const productPriceElem = document.getElementById('productPrice');
+            if (productPriceElem) {
+                productPriceElem.innerText = '₹' + effectivePrice.toFixed(2);
+            }
+            
+            // Update old price and discount percentage elements
+            const oldPriceElem = document.getElementById('oldPrice');
+            const discountPercentageElem = document.getElementById('discountPercentage');
+            if (discount > 0 && price > 0) {
+                if (oldPriceElem) {
+                    oldPriceElem.innerText = '₹' + price.toFixed(2);
+                    oldPriceElem.style.display = 'inline';
+                }
+                if (discountPercentageElem) {
+                    // Calculate discount percentage as reduction from original price
+                    const discountPercentage = Math.round(((price - discount) / price) * 100);
+                    discountPercentageElem.innerText = '(' + discountPercentage + '% Off)';
+                    discountPercentageElem.style.display = 'inline';
+                }
+            } else {
+                if (oldPriceElem) {
+                    oldPriceElem.style.display = 'none';
+                }
+                if (discountPercentageElem) {
+                    discountPercentageElem.style.display = 'none';
+                }
+            }
+            
+            const productStockElem = document.getElementById('productStock');
+            if (productStockElem) {
+                productStockElem.innerText = stock + " Items In Stock";
+            }
+            
+            // Update hidden input for variant id in the add-to-cart form
+            const selectedVariantInput = document.getElementById('selectedVariant');
+            if (selectedVariantInput) {
+                selectedVariantInput.value = variantId;
+            }
+
+
+            // *** NEW: Update the wishlist button's data attribute ***
+            const wishlistButton = document.getElementById('add-to-wishlist-btn');
+            if (wishlistButton) {
+                wishlistButton.setAttribute('data-variant-id', variantId);
+            }
+            
+            // Update current stock and reset quantity
+            updateCurrentStock(stock);
+        }
+        
+        // Attach click event listeners to variant tiles
+        variantTiles.forEach(function(tile) {
+            tile.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Remove 'active' class from all tiles and add it to the clicked one
+                variantTiles.forEach(t => t.classList.remove('active'));
+                tile.classList.add('active');
+                updateProductDetails(tile);
+            });
+        });
+        
+        // Update the display on page load using the active tile (if it exists)
+        const activeTile = document.querySelector('.variant-tile.active');
+        if (activeTile) {
+            updateProductDetails(activeTile);
+        }
+        
+        // Quantity increment button
+        const qtyUp = document.querySelector(".qty-up");
+        if (qtyUp) {
+            qtyUp.addEventListener("click", function(e) {
+                e.preventDefault();
+                let currentQty = parseInt(qtyValEl.textContent);
+                if (currentQty < currentStock) {
+                    currentQty++;
+                    qtyValEl.textContent = currentQty;
+                    qtyInput.value = currentQty;
+                }
+            });
+        }
+        
+        // Quantity decrement button
+        const qtyDown = document.querySelector(".qty-down");
+        if (qtyDown) {
+            qtyDown.addEventListener("click", function(e) {
+                e.preventDefault();
+                let currentQty = parseInt(qtyValEl.textContent);
+                if (currentQty > 1) {
+                    currentQty--;
+                    qtyValEl.textContent = currentQty;
+                    qtyInput.value = currentQty;
+                }
+            });
+        }
+    });
+</script>
+
+
+
+<script>
+    // CSRF utility: no extra installation required, just native JavaScript
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    
+    // Helper function to handle POST requests using the Fetch API
+    function postData(url, data) {
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken,
+            },
+            body: new URLSearchParams(data)
+        })
+        .then(response => response.json());
+    }
+    
+    // Add event listener to the wishlist button
+    document.getElementById('add-to-wishlist-btn').addEventListener('click', function() {
+        const variantId = this.getAttribute('data-variant-id');
+        console.log("Sending variant id:", variantId);  // Debug: check that this logs a valid id.
+        postData("{% url 'wishlist:add_to_wishlist' %}", { variant_id: variantId })
+            .then(data => {
+                Swal.fire({
+                    icon: data.success ? 'success' : 'error',
+                    title: data.message,
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+                if (data.success) {
+                    // Update the wishlist count in the header dynamically from the AJAX response.
+                    document.getElementById('wishlist-count').textContent = data.wishlist_count;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    });
+</script>
+    
+    
+{% endblock %}

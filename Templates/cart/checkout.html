@@ -1,0 +1,461 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  /* Custom styles for address accordion and buttons */
+  .black-hover-button {
+    background-color: transparent !important;
+    color: black !important;
+    width: 100%;
+    text-align: left;
+  }
+  .black-hover-button:hover,
+  .black-hover-button:focus {
+    background-color: black;
+    color: white !important;
+  }
+  .black-hover-button input[type="checkbox"] {
+    margin-right: 10px;
+  }
+  .accordion-button:not(.collapsed) {
+    color: white;
+    background-color: black;
+  }
+  /* Ensure the accordion card expands to full width */
+  .accordion-item {
+    border: none;
+  }
+  address p {
+    margin-bottom: 5px;
+    /* Remove any text-overflow styling that might be set globally */
+    white-space: normal;
+  }
+</style>
+
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+              <a href="{% url 'homeapp:home' %}" rel="nofollow">Home</a>
+              <span></span><a href="{% url 'cart:cart_detail' %}" rel="nofollow">Cart</a>
+              <span></span> Checkout
+            </div>
+        </div>
+    </div>
+    
+    <section class="mt-20 mb-50">
+        <div class="container">
+            <div class="row">
+                <!-- Billing Details / Address Selection Column -->
+                <div class="col-md-6">
+                    <div class="mb-25">
+                        <h4>Billing Details</h4>
+                    </div>
+                    <div>
+                        <div class="accordion" id="addressAccordion">
+                            {% for address in addresses %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading{{ address.id }}">
+                                    <button class="accordion-button collapsed black-hover-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ address.id }}" aria-expanded="false" aria-controls="collapse{{ address.id }}">
+                                      <input type="radio" name="selected_address" class="form-check-input me-2 address-radio"
+                                      data-address-id="{{ address.id }}" {% if address.status %}checked{% endif %} />
+
+                                      {{ address.name }}
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ address.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ address.id }}" data-bs-parent="#addressAccordion">
+                                    <div class="accordion-body">
+                                        <address>
+                                            <p><strong>House Name:</strong> {{ address.house_name }}</p>
+                                            <p><strong>Street Name:</strong> {{ address.street_name }}</p>
+                                            <p><strong>Pin Number:</strong> {{ address.pin_number }}</p>
+                                            <p><strong>District:</strong> {{ address.district }}</p>
+                                            <p><strong>State:</strong> {{ address.state }}</p>
+                                            <p><strong>Phone Number:</strong> {{ address.phone_number }}</p>
+                                            <p><strong>Country:</strong> {{ address.country }}</p>
+                                        </address>
+                                        <!-- Link to edit the address -->
+                                         
+                                        <a class="btn  btn-sm " href="{% url 'user_panel:edit_address' address.id %}">Edit</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p>No addresses found.</p>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                    <div class="mb-25">
+                        <button type="button" class="btn btn-fill-out btn-block hover-up" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                            Add New Address
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <div id="coupon-section">
+                      <div class="d-flex mb-2">
+                        <input
+                          type="text"
+                          id="coupon-input"
+                          class="form-control me-2"
+                          placeholder="Enter coupon code"
+                          value="{{ applied_coupon|default:'' }}"
+                        />
+                        <button type="button" id="apply-coupon-btn" class="btn btn-primary">Apply</button>
+                      </div>
+                      <p id="coupon-message"></p>
+                      <button id="show-coupons" class="btn btn-outline-secondary mb-3">
+                        Available Coupons
+                      </button>
+                      <div id="applied-coupon-display" {% if not applied_coupon %}style="display:none"{% endif %}>
+                        Applied Coupon: <strong id="applied-code">{{ applied_coupon }}</strong>
+                        <button type="button" id="remove-coupon-btn" class="btn btn-sm ">Remove</button>
+                      </div>
+                    </div>
+                    
+                  </div>
+                
+                <!-- Order Summary Column -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h4 class="card-title mb-4">Your Orders</h4>
+                            <div class="order-items">
+                                {% for item in cart_items %}
+                                <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                                    <img src="{{ item.variant.product.images.first.image.url }}" alt="{{ item.variant.product.name }}" class="img-fluid rounded me-3" style="width: 60px; height: 60px; object-fit: cover" />
+                                    <div class="flex-grow-1">
+                                        <h5 class="mb-1">{{ item.variant.product.name }}</h5>
+                                        <h6 class="mb-0">Size: {{ item.variant.variant_name }} GB</h6>
+                                        <small class="text-muted">Quantity: {{ item.quantity }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold">₹{{ item.get_total_price }}</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="order-summary mt-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal</span>
+                                    <span>₹{{ subtotal }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Shipping</span>
+                                    <span class="text-success"> {% if shipping_cost == 0 %} Free {% else %}{{shipping_cost}}{% endif %}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                  <span>Discount</span>
+                                  <span>₹{{ discount|floatformat:2 }}</span>
+                              </div>
+                                <!-- You can include coupon and discount details if available -->
+                                <div class="d-flex justify-content-between fw-bold mt-3 pt-3 border-top">
+                                    <span>Total</span>
+                                    <span>₹{{ total }}</span>
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+                            <form method="post" action="{% url 'order:place_order' %}">
+                                {% csrf_token %}
+                                <h5 class="mb-3">Payment Method</h5>
+                                <div class="mb-3">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="payment_option" value="Cash On Delivery" id="CashOnDelivery"/>
+                                        <label class="form-check-label" for="CashOnDelivery">Cash On Delivery</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="payment_option" value="Wallet" id="Wallet" />
+                                        <label class="form-check-label" for="Wallet">Wallet ( ₹{{ total }} )</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_option" value="Online Payment" id="OnlinePayment" />
+                                        <label class="form-check-label" for="OnlinePayment">Online Payment</label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-outline-dark w-100 mt-3">Place Order</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+
+    <!-- 3) Modal itself -->
+    <div class="modal fade" id="couponModal" tabindex="-1">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title">Available Coupons</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+            {% if coupons %}
+                <ul class="list-group">
+                {% for coupon in coupons %}
+                    <li
+                    class="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                    <div>
+                        <strong>{{ coupon.name }}</strong><br>
+                        Code: <code>{{ coupon.code }}</code><br>
+                        Discount: {{ coupon.discount }}%
+                    </div>
+                    <button
+                      class="btn btn-sm btn-outline-secondary copy-code-btn"
+                      data-code="{{ coupon.code }}"
+                    >
+                      Copy Code
+                    </button>
+
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No coupons available right now.</p>
+            {% endif %}
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+    <!-- Modal for Adding New Address -->
+    <div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form method="post" name="edit_address_form" action="{% url 'user_panel:add_address' %}">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="form-group col-md-6">
+                        <label>Name <span class="required">*</span></label>
+                        <input required class="form-control square" name="name" type="text" value="">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>House Name <span class="required">*</span></label>
+                        <input required class="form-control square" name="house_name" value="">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Street Name <span class="required">*</span></label>
+                        <input required class="form-control square" name="street_name" type="text" value="">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Pin Number <span class="required">*</span></label>
+                        <input required class="form-control square" name="pin_number" value="">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>District <span class="required">*</span></label>
+                        <input required class="form-control square" name="district" type="text" value="">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>State <span class="required">*</span></label>
+                        <input required class="form-control square" name="state" value="">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Country <span class="required">*</span></label>
+                        <input required class="form-control square" name="country" type="text" value="">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Phone Number <span class="required">*</span></label>
+                        <input required class="form-control square" name="phone_number" value="">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="is_active" name="status">
+                        <label class="form-check-label" for="is_active">Status</label>
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                    </div>
+                </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  // Handle radio click for address selection via AJAX
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".address-radio").forEach((radio) => {
+      radio.addEventListener("change", function () {
+        const addressId = this.dataset.addressId;
+        $.ajax({
+          url: '{% url "user_panel:toggle_address_status" %}',
+          method: "POST",
+          data: {
+            address_id: addressId,
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+          },
+          success: function (response) {
+            if (response.success) {
+              console.log("Address status toggled successfully.");
+            } else {
+              console.error("Failed to toggle address status.");
+            }
+          },
+          error: function (response) {
+            console.error("Error toggling address status:", response);
+          },
+        });
+      });
+    });
+  });
+</script>
+
+<script>
+    // Show modal
+    document.getElementById('show-coupons')
+      .addEventListener('click', () => {
+        new bootstrap.Modal(
+          document.getElementById('couponModal')
+        ).show();
+      });
+  
+    // Apply from modal buttons
+    document.querySelectorAll('.copy-code-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const code = btn.dataset.code;
+        const resp = await fetch("{% url 'cart:apply_coupon' %}", {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({coupon_code: code})
+        });
+        const result = await resp.json();
+        if (result.success) {
+          location.reload();
+        } else {
+          document.getElementById('coupon-message').textContent = result.message;
+        }
+      });
+    });
+    
+  </script>
+
+  <script>
+    $(function(){
+      // 1) Address radio AJAX
+      $('.address-radio').change(function(){
+        $.post(
+          '{% url "user_panel:toggle_address_status" %}',
+          {
+            address_id: $(this).data('address-id'),
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+          }
+        );
+      });
+      //apply coupon via AJAX
+      $('#apply-coupon-btn').click(function(e){
+        e.preventDefault();
+        const code = $('#coupon-code').val().trim();
+    
+        $.post("{% url 'cart:apply_coupon' %}", {
+            coupon_code: code,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        }, function(data){
+            if(data.success){
+                $('#summary-discount').text("₹" + data.discount.toFixed(2));
+                $('#summary-total').text("₹" + data.total.toFixed(2));
+                $('#applied-coupon-display').show().text("Applied Coupon: " + data.applied_coupon);
+                $('#coupon-message').text(data.message).css('color', 'green');
+            } else {
+                $('#coupon-message').text(data.message).css('color', 'red');
+            }
+        });
+      });
+    
+  
+      // 3) Remove coupon via AJAX
+      $('#remove-coupon-btn').click(function(e){
+        e.preventDefault();
+    
+        $.post("{% url 'cart:remove_coupon' %}", {
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        }, function(data){
+            if(data.success){
+                $('#summary-discount').text("₹" + data.discount.toFixed(2));
+                $('#summary-total').text("₹" + data.total.toFixed(2));
+                $('#applied-coupon-display').hide();
+                $('#coupon-message').text(data.message).css('color', 'gray');
+            } else {
+                $('#coupon-message').text(data.message).css('color', 'red');
+            }
+        });
+      });
+    
+  
+      // 4) Show coupon modal
+      $('#show-coupons').click(function(){
+        $('#couponModal').modal('show');
+      });
+  
+      // 5) Copy code from modal
+      $('.copy-code-btn').click(function(){
+        $('#coupon-input').val($(this).data('code'));
+        $('#couponModal').modal('hide');
+      });
+  
+      // 6) Enable Place Order button
+      function togglePlace(){
+        const addr = $('.address-radio:checked').length;
+        const pay  = $('.payment-radio:checked').length;
+        $('#place-order-btn').prop('disabled', !(addr && pay));
+      }
+      $('.address-radio, .payment-radio').change(togglePlace);
+      togglePlace();
+    });
+
+
+    document.getElementById("apply-coupon-btn").addEventListener("click", async () => {
+      const code = document.getElementById("coupon-input").value.trim();
+      const resp = await fetch("{% url 'cart:apply_coupon' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({coupon_code: code})
+      });
+      const result = await resp.json();
+      if (result.success) {
+        location.reload();
+      } else {
+        document.getElementById("coupon-message").textContent = result.message;
+      }
+    });
+    
+    document.getElementById("remove-coupon-btn")?.addEventListener("click", async () => {
+      const resp = await fetch("{% url 'cart:remove_coupon' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: ''
+      });
+      const result = await resp.json();
+      if (result.success) {
+        location.reload();
+      }
+    });
+    
+  </script>
+  
+{% endblock content %}

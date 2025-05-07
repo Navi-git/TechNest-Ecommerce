@@ -1,0 +1,665 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
+<style>
+    .no-outline {
+        outline: none;
+        box-shadow: none;
+    }
+    
+    .no-outline:focus,
+    .no-outline:active {
+        outline: none;
+        box-shadow: none;
+    }
+    .wallet-table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9em;
+        color: #495057;
+    }
+    .wallet-table td {
+        vertical-align: middle;
+        font-size: 0.95em;
+    }
+    .transaction-type {
+        font-weight: 600;
+        padding: 0.25em 0.6em;
+        border-radius: 20px;
+    }
+    .transaction-amount {
+        font-weight: 700;
+        font-size: 1.05em;
+    }
+    .transaction-date {
+        color: #6c757d;
+    }
+    .transaction-description {
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="{% url 'homeapp:home' %}" rel="nofollow">Home</a>
+                <span></span> Pages
+                <span></span> Account
+            </div>
+        </div>
+    </div>
+    <section class="pt-50 pb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 m-auto">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="dashboard-menu">
+                                <ul class="nav flex-column" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab" aria-controls="dashboard" aria-selected="false"><i class="fi-rs-settings-sliders mr-10"></i>Dashboard</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="orders-tab" data-bs-toggle="tab" href="#orders" role="tab" aria-controls="orders" aria-selected="false"><i class="fi-rs-shopping-bag mr-10"></i>Orders</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#track-orders" role="tab" aria-controls="track-orders" aria-selected="false"><i class="fi-rs-shopping-cart-check mr-10"></i>Wallet</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#address" role="tab" aria-controls="address" aria-selected="true"><i class="fi-rs-marker mr-10"></i>My Address</a>
+                                    </li>
+                                
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'account_logout' %}"><i class="fi-rs-sign-out mr-10"></i>Logout</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="tab-content dashboard-content">
+                                <div class="tab-pane fade active show" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                                    <div class="card">
+                                        <div class="card-body text-center"> 
+                                            <div class="mb-3"> 
+                                                <a   href="#"  aria-expanded="false"> <img class="img-xs rounded-circle" style="height:100px;" src="{% static 'userside/assets/images/icons/adminavatar.jpg' %}" alt="User"></a>
+                                            </div> 
+                                            <h5 class="card-title">{{ user.get_full_name }}</h5> 
+                                            <p class="card-text text-muted">{{ user.email }}</p> 
+                                            <a href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal" class="btn btn-outline-secondary btn-sm mt-2">Edit Profile</a> 
+                                            <a href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal" class="btn btn-outline-secondary btn-sm mt-2">Change Password</a>
+                                        </div>
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Hello {{ user.username }}! </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="form-group col-md-6">
+                                                    <label>First Name<span class="required">*</span></label>
+                                                    <input required class="form-control square" name="name" value="{{ user_data.first_name}} " type="text">
+                                                </div>
+                                                
+                                                <div class="form-group col-md-6">
+                                                    <label>Last Name<span class="required">*</span></label>
+                                                    <input required class="form-control square" value="{{ user_data.last_name }}" name="house_name">
+                                                </div>
+                                                
+                                                <div class="form-group col-md-6">
+                                                    <label>Email<span class="required">*</span></label>
+                                                    <input required class="form-control square" name="street_name" value="{{ user_data.email }}" type="text">
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>Phone Number<span class="required">*</span></label>
+                                                    <input required class="form-control square" value="{{ user_data.phone_number }}" name="pin_number">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Your Orders</h5>
+                                        </div>
+                                        {% if orders %}
+                                        <div class="card-body"> 
+                                            <div class="table-responsive"> 
+                                                <table class="table"> 
+                                                    <thead> 
+                                                        <tr> 
+                                                            <th>Order ID</th> 
+                                                            <th>Address</th> 
+                                                            <th>Price</th> 
+                                                            <th style="width:100px;">Date</th> 
+                                                            <th>Status</th> 
+                                                            <th style="width:500px;">Action</th> 
+                                                        </tr> 
+                                                    </thead> 
+                                                    {% for order in orders %}
+                                                    <tbody> 
+                                                        <tr> 
+                                                            <td> 
+                                                                {% if order_sub.variant.product.thumbnail %}
+                                                                <img src="{{ order_sub.variant.product.thumbnail.url }}"  alt="{{ order_sub.variant.product.product_name }}" style="width: 100px;"> 
+                                                                {% endif %}
+                                                                <div>Order ID:</div> 
+                                                                <div>{{ order.order_id }}</div>
+                                                            </td> 
+                                                            
+                                                            <td> 
+                                                                {{ order.address.house_name }}<br> 
+                                                                {{ order.address.district }}<br> 
+                                                                {{ order.address.state}}<br>
+                                                                {{ order.address.pin_number}} 
+                                                            </td> 
+                                                            <td>₹{{ order.final_amount }}</td> 
+                                                            <td> 
+                                                                {{ order.date }}<br>
+                                                            </td>
+                                                            <td><span {% if order.order_status == "Delivered" %} class="badge bg-success" {% elif order.order_status == "Confirmed" %} class="badge bg-warning" {% elif order.order_status == "Shipped" %} class="badge bg-primary" {% else %}class="badge bg-danger" {% endif %}>{{ order.order_status }}</span></td> 
+                                                            <td >
+                                                                <div>
+                                                                    {% if order.order_status == "Confirmed" or order.order_status == "Awaiting Payment" or order.order_status == "Shipped" %}
+                                                                    <form id="cancel-order-form" method="post" action="{% url 'order:cancel_order' order.id %}">
+                                                                        {% csrf_token %}
+                                                                        <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
+                                                                            Cancel Order
+                                                                        </button>
+                                                                    </form>
+                                                                    {% endif %}
+                                                                </div>
+                                                                <div style="margin-top:10px;">
+                                                                    {% if order.order_status == "Delivered" %}
+                                                                    <form id="return-order-form" method="post" action="{% url 'order:return_order' order.id %}">
+                                                                        {% csrf_token %}
+                                                                        <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
+                                                                            Return Order
+                                                                        </button>
+                                                                    </form>
+                                                                    {% endif %}
+                                                                </div>
+                                                                
+                                                                <div style="margin-top:10px; margin-bottom:10px;">
+                                                                    <button class="btn btn-danger btn-sm collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#orderDetails{{ order.id }}" aria-expanded="false" aria-controls="orderDetails{{ order.id }}">
+                                                                        Details
+                                                                    </button>
+                                                                </div>
+                                                                {% if order.order_status == "Delivered" %}
+                                                                <a style="padding-top:20;" href="{% url 'user_panel:user_invoice' order.id %}" class="btn btn-danger btn-sm collapse-btn">Invoice Download</a>
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="6" class="p-0">
+                                                                <div class="collapse order-details" id="orderDetails{{ order.id }}">
+                                                                    <div class="card card-body">
+                                                                        {% for item in order.ordersub_set.all %}
+                                                                        <div class="row mb-3">
+                                                                            <div class="col-md-3">
+                                                                                <img src="{{ item.variant.product.images.first.image.url }}" alt="{{ item.variant.product.name }}" class="img-fluid rounded">
+                                                                            </div>
+                                                                            <div class="col-md-9">
+                                                                                <div class="row">
+                                                                                    <div class="col-md-6">
+                                                                                        <h5 class="card-title">{{ item.variant.product.product_name }}</h5>
+                                                                                        <p class="card-text">
+                                                                                            Quantity: {{ item.quantity }}<br>
+                                                                                            Size: {{ item.variant.variant_name }}<br>
+                                                                                            Price: ₹{{ item.price }}
+                                                                                        </p>
+                                                                                        {% if item.is_active and item.main_order.is_active %}
+                                                                                            {% if item.status != "Return Requested" and item.status != "Canceled" and item.status != "Returned" %}
+                                                                                                {% if item.main_order.order_status == "Delivered" %}
+                                                                                                    <form class="item-return-form" method="post" action="{% url 'order:individual_return' item.id %}">
+                                                                                                        {% csrf_token %}
+                                                                                                        <button type="submit" class="btn btn-danger btn-sm collapse-btn">Return</button>
+                                                                                                    </form>
+                                                                                                {% else %}
+                                                                                                    <form class="item-cancel-form" method="post" action="{% url 'order:individual_cancel' item.id %}">
+                                                                                                        {% csrf_token %}
+                                                                                                        <button type="submit" class="btn btn-danger btn-sm collapse-btn">Cancel</button>
+                                                                                                    </form>
+                                                                                                {% endif %}
+                                                                                            {% else %}
+                                                                                                <span class="badge badge-warning px-2 py-1">
+                                                                                                    {{ item.status }}
+                                                                                                </span>
+                                                                                            {% endif %}
+                                                                                        {% else %}
+                                                                                            <span class="badge {% if item.transaction_type == 'Credited' %}badge-success{% else %}badge-danger{% endif %} px-2 py-1">
+                                                                                                {% if item.status %}
+                                                                                                {{ item.status }}
+                                                                                                {% else %}
+                                                                                                {{ item.main_order.order_status }}
+                                                                                                {% endif %}
+                                                                                            </span>
+                                                                                        {% endif %}
+
+                                                                                    </div>
+                                                                                    <div class="col-md-6">
+                                                                                        <h5 class="card-title">Delivery Address</h5>
+                                                                                        <p class="card-text">
+                                                                                            Name: {{ item.main_order.address.name }}<br>
+                                                                                            House Name: {{ item.main_order.address.house_name }}<br>
+                                                                                            Size: {{ item.variant.variant_name }}<br>
+                                                                                            Price: ₹{{ item.variant.discount }}<br>
+                                                                                        </p>
+                                                                                    </div>
+                                                                                    
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        {% endfor %}
+                                                                    </div>
+                                                                </div>
+                                                    
+                                                            </td>
+                                                        </tr>
+                                                        
+                                                    </tbody> 
+                                                    {% endfor %}
+                                                </table> 
+                                            </div> 
+                                        </div>
+                                        {% else %}
+                                        <h4 style="padding-left:20px;">
+                                            No Orders Yet
+                                        </h4>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Include Bootstrap JS for collapse functionality -->
+                                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+                                <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
+                                    <div class="card shadow-sm">
+                                        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                                            <h5 class="mb-0 text-danger font-weight-bold">Wallet</h5>
+                                            <h4 class="mb-0 font-weight-bold">Balance: <span class="text-danger">₹{{ wallet.balance }}</span></h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                {% if wallet_transactions %}
+                                                <table class="table table-hover">
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th scope="col">Transaction Type</th>
+                                                            <th scope="col">Amount</th>
+                                                            <th style="width:100px;" scope="col">Date</th>
+                                                            <th scope="col">Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for item in wallet_transactions %}
+                                                        <tr>
+                                                            <td>
+                                                                {% if item.transaction_type == 'credit' %}
+                                                                    <span class="badge bg-success px-2 py-1">Credited</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-danger px-2 py-1">Debited</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td class="font-weight-bold {% if item.transaction_type == 'credit' %}text-success{% else %}text-danger{% endif %}">
+                                                                ₹{{ item.amount }}
+                                                            </td>
+                                                            <td>{{ item.created_at|date:"M d, Y" }}</td>
+                                                            <td>{{ item.description }}</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                                {% else %}
+                                                <h4>No Transactions Yet</h4>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {% comment %} <a href="{% url 'user_panel:create_address' %}"><button class="btn btn-danger btn-sm mb-5" style="color: white; border: none; outline: none; padding: 5px 10px; border-radius: 3px; ">
+                                    Create Address
+                                </button></a> {% endcomment %}
+                                <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+                                    <button type="button" class="btn mb-2" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                                        Add Address
+                                    </button>
+                                    <div class="row">
+                                        {% for address in user_address %}
+                                        <div class="col-lg-6">
+                                            <div class="card mb-3 mb-lg-0">
+                                                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                                    <h5 class="mb-0">{{ address.name }}</h5>
+                                                    <a href="{% url 'user_panel:make_as_default' address.id %}" style="color:red" class="btn-small">
+                                                        {% if address.status %}
+                                                            Default
+                                                        {% else %}
+                                                            Make as Default
+                                                        {% endif %}
+                                                    </a>
+                                                </div>
+                                                <div class="card-body">
+                                                    <address>
+                                                        {{ address.house_name }} <br>
+                                                        {{ address.street_name }} <br>
+                                                        {{ address.pin_number }} <br>
+                                                        {{ address.district }} <br>
+                                                        {{ address.state }} <br>
+                                                        {{ address.phone_number }}
+                                                    </address>
+                                                    <p>{{ address.country }}</p>    
+                                                    <div style="margin-left:230px;">
+                                                        <div style="display: inline-block;">
+                                                            <a href="{% url 'user_panel:edit_address' address.id %}" class="btn-small">Edit</a>
+                                                        </div>
+                                                        <div style="display: inline-block;">
+                                                            <p>|</p>
+                                                        </div>
+                                                        <div style="display: inline-block;">
+                                                            <form action="{% url 'user_panel:address_delete' address.id %}" method='post'>
+                                                                {% csrf_token %}
+                                                                <button style="color: white; background-color: red; border: none; outline: none;" class="btn-small">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <p>No addresses found.</p>
+                                        {% endfor %}
+                                        
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Bootstrap Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'user_panel:edit_details' user.id %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label>First Name<span class="required">*</span></label>
+                            <input required class="form-control square" name="first_name" value="{{ user.first_name }}" type="text">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Last Name<span class="required">*</span></label>
+                            <input required class="form-control square" value="{{ user.last_name }}" name="last_name">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Phone Number<span class="required">*</span></label>
+                            <input required class="form-control square" value="{{ user.phone_number }}" name="phone_number">
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Change Password Modal -->
+      <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div style="margin-left:0px; width:100%">
+                  <div style="margin-top:30px;" class="r">
+                      <h2>Change Password</h2>
+                  </div>
+                  <div class="card-body">
+                        <form method="post" name="edit_address_form" action="{% url 'user_panel:change_password' %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label>Old Password <span class="required">*</span></label>
+                                    <input required class="form-control square" name="old_password" type="Password">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label> New Password <span class="required">*</span></label>
+                                    <input required class="form-control square" name="new_password" type="Password">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label> Confirm New Password <span class="required">*</span></label>
+                                    <input required class="form-control square" name="confirm_new_password" type="Password">
+                                </div>
+                                <div class="col-md-12">
+                                    <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                                </div>
+                            </div>
+                        </form>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressModalLabel">Add Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" name="edit_address_form" action="{% url 'user_panel:create_address' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label>Name <span class="required">*</span></label>
+                            <input required class="form-control square" name="name" type="text" value="{{ users.name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>House Name <span class="required">*</span></label>
+                            <input required class="form-control square" name="house_name" value="{{ users.house_name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Street Name <span class="required">*</span></label>
+                            <input required class="form-control square" name="street_name" type="text" value="{{ users.street_name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Pin Number <span class="required">*</span></label>
+                            <input required class="form-control square" name="pin_number" value="{{ users.pin_number }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>District <span class="required">*</span></label>
+                            <input required class="form-control square" name="district" type="text" value="{{ users.district }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>State <span class="required">*</span></label>
+                            <input required class="form-control square" name="state" value="{{ users.state }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Country <span class="required">*</span></label>
+                            <input required class="form-control square" name="country" type="text" value="{{ users.country }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Phone Number <span class="required">*</span></label>
+                            <input required class="form-control square" name="phone_number" value="{{ users.phone_number }}">
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="is_active" name="status" {% if users.status %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Status</label>
+                        </div>
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="reasonModal" tabindex="-1" aria-labelledby="reasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reasonModalLabel">Provide Reason</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reason-form">
+                    <div class="mb-3">
+                        <label for="reason-text" class="form-label">Reason:</label>
+                        <textarea class="form-control" id="reason-text" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentForm;
+    
+        function handleConfirmation(form, title, text, isReturn = false) {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, proceed'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (isReturn) {
+                            currentForm = form;
+                            const reasonModal = new bootstrap.Modal(document.getElementById('reasonModal'));
+                            reasonModal.show();
+                        } else {
+                            form.submit();
+                        }
+                    }
+                });
+            });
+        }
+    
+        // Handle reason form submission
+        const reasonForm = document.getElementById('reason-form');
+        reasonForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const reason = document.getElementById('reason-text').value;
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'reason';
+            hiddenInput.value = reason;
+            currentForm.appendChild(hiddenInput);
+    
+            const reasonModal = bootstrap.Modal.getInstance(document.getElementById('reasonModal'));
+            reasonModal.hide();
+            currentForm.submit();
+        });
+    
+        // Order-level cancel
+        const cancelOrderForms = document.querySelectorAll('#cancel-order-form');
+        cancelOrderForms.forEach(form => {
+            handleConfirmation(form, 'Cancel Order?', 'Are you sure you want to cancel this order?');
+        });
+    
+        // Order-level return
+        const returnOrderForms = document.querySelectorAll('#return-order-form');
+        returnOrderForms.forEach(form => {
+            handleConfirmation(form, 'Return Order?', 'Are you sure you want to return this order?', true);
+        });
+    
+        // Item-level cancel
+        const itemCancelForms = document.querySelectorAll('.item-cancel-form');
+        itemCancelForms.forEach(form => {
+            handleConfirmation(form, 'Cancel Item?', 'Are you sure you want to cancel this item?');
+        });
+    
+        // Item-level return
+        const itemReturnForms = document.querySelectorAll('.item-return-form');
+        itemReturnForms.forEach(form => {
+            handleConfirmation(form, 'Return Item?', 'Are you sure you want to return this item?', true);
+        });
+    });
+    
+</script>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var collapseButtons = document.querySelectorAll('.collapse-btn');
+        collapseButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var currentCollapse = document.querySelector('.collapse.show');
+                if (currentCollapse && currentCollapse !== this.nextElementSibling) {
+                    var collapseInstance = bootstrap.Collapse.getInstance(currentCollapse);
+                    if (collapseInstance) {
+                        collapseInstance.hide();
+                    }
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                {
+                    type: "{{ message.tags }}",  // assuming message.tags contains the type ('success', 'error', etc.)
+                    text: "{{ message }}"
+                },
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: message.type === 'error' ? 'error' : 'success',  // Show error icon for error messages
+                title: message.text,
+                showConfirmButton: false,
+                timer: 3000,
+                background: message.type === 'error' ? '#f8d7da' : '', // Optional: customize background color for errors
+                color: message.type === 'error' ? '#721c24' : ''       // Optional: customize text color for errors
+            });
+        });
+    {% endif %}
+});
+</script>
+{% endblock %} 

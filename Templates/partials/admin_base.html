@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Technest Dashboard</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="adminside/assets/imgs/theme/favicon.svg">
+    <!-- Template CSS -->
+    <link href="{% static 'adminside/assets/css/main.css' %}" rel="stylesheet" type="text/css" />
+    <!-- Cropper js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    {% block css %}
+    {# This is where the content of the child template will be displayed #}
+    {% endblock css %}
+    <!-- Include SweetAlert2 CSS and JS from CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+
+<body>
+    <div class="screen-overlay"></div>
+    <aside class="navbar-aside" id="offcanvas_aside">
+        <div class="aside-top">
+            <a href="index.html" class="brand-wrap">
+                <img src="{% static 'adminside/assets/imgs/theme/logo.svg' %}" class="logo" alt="Evara Dashboard">
+            </a>
+            <div>
+                <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i> </button>
+            </div>
+        </div>
+        <nav>
+            <ul class="menu-aside">
+                <li class="menu-item active">
+                    <a class="menu-link" href="{% url "userauths:admin_dashboard" %}"> <i class="icon material-icons md-home"></i>
+                        <span class="text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="{% url "products:admin_product_list" %}"> <i class="icon material-icons md-shopping_bag"></i>
+                        <span class="text">Products</span>
+
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="{% url "category:admin_category_list" %}"> <i class="icon material-icons md-store"></i>
+                         <span class="text" >Categories</span>
+                    </a>
+                    
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="#"> <i class="icon material-icons md-monetization_on"></i>
+                        <span class="text">Transactions</span>
+                    </a>
+                    
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="{% url 'userauths:user_management' %}"> <i class="icon material-icons md-person"></i>
+                        <span class="text">Users</span>
+                    </a>
+
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="#"> <i class="icon material-icons md-comment"></i>
+                        <span class="text">Reviews</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="{% url "coupons:coupon_list" %}""> <i class="icon material-icons md-stars"></i>
+                        <span class="text"> Coupons </span> </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" disabled href="#"> <i class="icon material-icons md-pie_chart"></i>
+                        <span class="text">Statistics</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="{% url 'order:admin_orders' %}"><i class="icon material-icons md-receipt_long"></i>
+                        <span class="text">Orders</span>
+                    </a>
+                    
+                </li>
+                <li class="menu-item">
+                    <a class="menu-link" href="{% url 'order:return_requests' %}"><i class="icon material-icons md-replay"></i>
+                        <span class="text">Returns</span>
+                    </a>
+                    
+                </li>
+            </ul>
+            <hr>
+            <ul class="menu-item">
+                <li class="menu-item">
+                    <a class="menu-link" href="#"> <i class="icon material-icons md-local_offer"></i>
+                        <span class="text"> Starter page </span>
+                    </a>
+                </li>
+            </ul>
+            <br>
+            <br>
+        </nav>
+    </aside>
+    <main class="main-wrap">
+        <header class="main-header navbar ">
+            
+            <div class="col-nav ms-auto d-flex align-items-center">
+                <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i class="material-icons md-apps"></i> </button>
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a class="nav-link btn-icon" href="#">
+                            <i class="material-icons md-notifications animation-shake"></i>
+                            <span class="badge rounded-pill">3</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-icon darkmode" href="#"> <i class="material-icons md-nights_stay"></i> </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="requestfullscreen nav-link btn-icon"><i class="material-icons md-cast"></i></a>
+                    </li>
+    
+                    <li class="dropdown nav-item">
+                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="{% static 'adminside/assets/imgs/people/avatar2.jpg' %}" alt="User"></a>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
+                            <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="{% url "userauths:admin_logout" %}"><i class="material-icons md-exit_to_app"></i>Logout</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </header>
+        <section class="content-main">
+            <!--
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Dashboard </h2>
+                    <p>Whole data about your business here</p>
+                </div>
+                <div>
+                    <a href="#" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create report</a>
+                </div>
+            </div>
+            -->
+            {% block content %}
+            {# This is where the content of the child template will be displayed #}
+            {% endblock %}
+            
+            
+        </section> <!-- content-main end// -->
+        <footer class="main-footer font-xs">
+            <div class="row pb-30 pt-15">
+                <div class="col-sm-6">
+                    <script>
+                    document.write(new Date().getFullYear())
+                    </script> ©, Evara - HTML Ecommerce Template .
+                </div>
+                <div class="col-sm-6">
+                    <div class="text-sm-end">
+                        All rights reserved
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </main>
+    <script src="{% static 'adminside/assets/js/vendors/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'adminside/assets/js/vendors/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'adminside/assets/js/vendors/select2.min.js' %}"></script>
+    <script src="{% static 'adminside/assets/js/vendors/perfect-scrollbar.js' %}"></script>
+    <script src="{% static 'adminside/assets/js/vendors/jquery.fullscreen.min.js' %}"></script>
+    <script src="{% static 'adminside/assets/js/vendors/chart.js' %}"></script>
+    <!-- Main Script -->
+    <script src="{% static 'adminside/assets/js/main.js' %}" type="text/javascript"></script>
+    <script src="{% static 'adminside/assets/js/custom-chart.js' %}" type="text/javascript"></script>
+    <!-- Cropper.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    {% if messages %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          {% for message in messages %}
+            var config = {
+              title: "{{ message|escapejs }}",
+              timer: 3000,
+              showConfirmButton: false,
+              position: "top-end",  // Moves the alert to the top-right
+              toast: true,  // Makes it look like a notification
+              timerProgressBar: true  // Shows a progress bar while closing
+            };
+            
+            {% if message.tags == 'success' %}
+              config.icon = "success";
+            {% elif message.tags == 'error' %}
+              config.icon = "error";
+            {% else %}
+              config.icon = "info";
+            {% endif %}
+      
+            Swal.fire(config);
+          {% endfor %}
+        });
+      </script>
+      
+    {% endif %}
+  
+
+    {% block scripts %}
+    {# This is where the content of the child template will be displayed #}
+    {% endblock scripts %}
+
+</body>
+
+</html>

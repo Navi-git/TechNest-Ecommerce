@@ -1,0 +1,108 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% load allauth account %}
+{% load socialaccount %}
+{% load static %}
+
+{% block head_title %}
+    {% trans "Sign In" %}
+{% endblock head_title %}
+
+{% block extra_head %}
+
+{% endblock extra_head %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <!-- Top Navigation Bar -->
+    <nav class="d-flex justify-content-between align-items-center mb-4">
+        {% comment %} <!-- Left Side: Sign In and Sign Up Buttons -->
+        <div>
+            <a href="{% url 'account_login' %}" class="btn btn-primary me-2">
+                {% trans "Sign In" %}
+            </a>
+            <a href="{% url 'account_signup' %}" class="btn btn-outline-secondary">
+                {% trans "Sign Up" %}
+            </a>
+        </div> {% endcomment %}
+        <!-- Right Side: Home Button -->
+        <div>
+            <a href="{% url 'homeapp:home' %}" class="btn btn-outline-secondary">
+                🏠 {% trans "Home" %}
+            </a>
+        </div>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card shadow-lg p-4">
+                <h2 class="text-center">{% trans "Sign In" %}</h2>
+                <p class="text-center">
+                    {% blocktranslate %}If you have not created an account, <a href="{{ signup_url }}">sign up</a> first.{% endblocktranslate %}
+                </p>
+
+                {% url 'account_login' as login_url %}
+                <form method="post" action="{{ login_url }}" class="mt-3">
+                    {% csrf_token %}
+                    
+                    <!-- Email Field -->
+                    <div class="mb-3">
+                        <label for="id_login" class="form-label">{% trans "Email" %}</label>
+                        <input type="email" name="login" id="id_login" class="form-control" required>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">{% trans "Password" %}</label>
+                        <input type="password" name="password" id="id_password" class="form-control" required>
+                        <div class="text-end mt-1">
+                            <a href="{% url 'account_reset_password' %}" class="text-decoration-none">
+                                {% trans "Forgot Password?" %}
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me Checkbox -->
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="remember" id="id_remember" class="form-check-input">
+                        <label for="id_remember" class="form-check-label">{% trans "Remember Me" %}</label>
+                    </div>
+
+                    <!-- Sign In Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn" style="background-color:#088178; color:white;">
+                            {% trans "Sign In" %}
+                        </button>
+                    </div>
+                    
+                    {{ redirect_field }}
+                </form>
+
+                <!-- OR Divider -->
+                <div class="text-center my-3">— OR —</div>
+
+                <!-- Google Sign In Button -->
+                <div class="d-grid">
+                    <a href="{% provider_login_url 'google' %}" class="btn btn-outline-dark">
+                      <svg aria-hidden="true" class="icon-svg" style="vertical-align: bottom; margin-top:-4px;" width="20" height="20" viewBox="0 0 20 20">
+                        <path d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z" fill="#4285F4"></path>
+                        <path d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z" fill="#34A853"></path>
+                        <path d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z" fill="#FBBC05"></path>
+                        <path d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.3z" fill="#EA4335"></path>
+                      </svg>
+                      {% trans "Sign up with Google" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_body %}
+    {{ block.super }}
+    {% if PASSKEY_LOGIN_ENABLED %}
+        {% include "mfa/webauthn/snippets/login_script.html" with button_id="passkey_login" %}
+    {% endif %}
+{% endblock %}
