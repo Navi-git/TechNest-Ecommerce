@@ -19,6 +19,8 @@ class User(AbstractUser):
     username = models.CharField(max_length=100, unique=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     is_verified = models.BooleanField(default=False)  # For email/OTP verification
+    # is_active = models.BooleanField(default=True)  # For block/unblock
+    # is_deleted = models.BooleanField(default=False)  # For soft delete/restore
     otp = models.CharField(max_length=6, blank=True, null=True)
     otp_sent_at = models.DateTimeField(blank=True, null=True)
 

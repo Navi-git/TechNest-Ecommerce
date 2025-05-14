@@ -264,17 +264,17 @@ def add_address(request):
         # Validate required fields
         if not all([name, house_name, street_name, pin_number, district, state, country, phone_number]):
             messages.error(request, "All fields are required.")
-            return redirect('cart:cart_checkout')
+            return redirect('cart:checkout')
         
         # Validate PIN number: 6-digit numeric value.
         if not pin_number.isdigit() or len(pin_number) != 6:
             messages.error(request, "Please enter a valid 6-digit PIN number.")
-            return redirect('cart:cart_checkout')
+            return redirect('cart:checkout')
         
         # Validate phone number: numeric and either 10 or 12 digits.
         if not phone_number.isdigit() or len(phone_number) not in [10, 12]:
             messages.error(request, "Please enter a valid phone number with 10 or 12 digits.")
-            return redirect('cart:cart_checkout')
+            return redirect('cart:checkout')
         
         # Create and save the address.
         address = UserAddress.objects.create(

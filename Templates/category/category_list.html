@@ -16,13 +16,20 @@
             <h2 class="content-title card-title">Categories </h2>
             <p>Add, edit or delete a category</p>
         </div>
-        <!-- #search-bar
         <div>
-            <input type="text" placeholder="Search Categories" class="form-control bg-white">
+            <a href="{% url 'category:add_category' %}" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Add Category</a>
         </div>
-        -->
     </div>
     <div class="card">
+            <header class="card-header">
+                <div class="col-lg-4 col-md-6 me-auto">
+                    <form method="GET" action="">
+
+                         <input type="text" name="q" class="form-control" placeholder="Search categories..." value="{{ query|default_if_none:'' }}">
+
+                    </form>
+                </div>
+            </header>
         <div class="card-body">
             <div class="row">
                 
@@ -102,8 +109,42 @@
            
         </div> <!-- card body .// -->
     </div> <!-- card .// -->
-    <div>
-        <a href="{% url 'category:add_category' %}" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Add Category</a>
+
+    <!-- Styled Pagination (Like Product Page) -->
+    <div class="pagination-area mt-4 mb-4">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-start">
+                {% if categories.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ categories.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                            <i class="material-icons md-chevron_left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in categories.paginator.page_range %}
+                    {% if categories.number == num %}
+                        <li class="page-item active">
+                            <a class="page-link" href="#">{{ num }}</a>
+                        </li>
+                    {% elif num > categories.number|add:'-3' and num < categories.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if categories.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ categories.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                            <i class="material-icons md-chevron_right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
+
+
 </section> <!-- content-main end// -->
 {% endblock content %}

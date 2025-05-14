@@ -45,3 +45,6 @@ htmlcov/
 # System files
 .DS_Store
 Thumbs.db
+
+# sqlite db
+# db.sqlite3

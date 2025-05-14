@@ -273,6 +273,9 @@ def checkout(request):
         'addresses': addresses,
         'available_coupons': available_coupons,
         'applied_coupon': coupon_code,
+        'subtotal' : cart.get_subtotal(),
+        'shipping_cost' : cart.get_shipping_cost(),
+        'coupons': available_coupons,
     }
 
     return render(request, 'cart/checkout.html', context)

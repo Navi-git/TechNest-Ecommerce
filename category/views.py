@@ -7,10 +7,27 @@ from .validators import validate_image_size, validate_no_leading_trailing_spaces
 from userauths.decorators import role_required
 
 
+from django.core.paginator import Paginator
+from django.db.models import Q
+
 @role_required(['admin'])
 def list_categories(request):
+    query = request.GET.get('q')
     categories = Category.objects.all()
-    return render(request, 'category/category_list.html', {'categories': categories})
+
+    if query:
+        categories = categories.filter(Q(name__icontains=query) | Q(description__icontains=query))
+
+    paginator = Paginator(categories, 5) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'categories': page_obj,
+        'query': query,
+    }
+    return render(request, 'category/category_list.html', context)
+
 
 @role_required(['admin'])
 def add_category(request):

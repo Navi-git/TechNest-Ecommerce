@@ -108,30 +108,57 @@
                             </div> <!-- card end -->
 
                             <!-- Variant Section (Always Visible) -->
-                            <div id="variant-section" style="margin-top: 20px;">
-                                <h3>Product Variants</h3>
-                                <div id="variant-container">
-                                    <!-- Variant block (one variant input group) -->
-                                    <div class="variant-item">
-                                        <label>Variant Name:</label>
-                                        <input type="text" name="variant_name[]" placeholder="e.g., Red, XL" required />
+                            <div class="card mt-4">
+                                <div class="card-header  text-white">
+                                    <h4 class="mb-0">Product Variants</h4>
+                                </div>
+                                <div class="card-body" id="variant-section">
+                                    <div id="variant-container">
+                                        <!-- Variant block (one variant input group) -->
+                                        <div class="variant-item border p-3 mb-3 rounded ">
+                                            <div class="row g-3">
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Variant Name</label>
+                                                    <input type="text" name="variant_name[]" class="form-control" placeholder="variant type" required />
+                                                </div>
 
-                                        <label>Variant Price:</label>
-                                        <input type="number" step="0.01" name="variant_price[]" required />
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Price</label>
+                                                    <input type="number" name="variant_price[]" class="form-control" placeholder="variant price" required />
+                                                </div>
 
-                                        <label>Discount:</label>
-                                        <input type="number" step="0.01" name="variant_discount[]" value="0.00" />
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Discount</label>
+                                                    <input type="number" step="0.5" name="variant_discount[]" class="form-control" placeholder="e.g., 10.00" value="0" />
+                                                </div>
+                                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Stock</label>
+                                                    <input type="number" name="variant_stock[]" class="form-control" placeholder="items" required />
+                                                </div>
 
-                                        <label>Stock:</label>
-                                        <input type="number" name="variant_stock[]" required />
+                                                <div class="col-md-4 d-flex align-items-end">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="variant_default[]" value="on" />
+                                                        <label class="form-check-label">Set as Default</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                        <label>Set as Default:</label>
-                                        <input type="checkbox" name="variant_default[]" value="on">
+                                    <!-- Button to add more variants -->
+                                    <div class="mt-3">
+                                        <button type="button" id="add-more-variant" class="btn btn-outline-primary">
+                                            + Add More Variant
+                                        </button>
                                     </div>
                                 </div>
-                                <!-- Button to add additional variant groups -->
-                                <button type="button" id="add-more-variant">Add More Variant</button>
                             </div>
+
+
+
                         </div>
                         <button type="submit" class="btn btn-md rounded font-sm hover-up">Publish Product</button>
                     </form>
@@ -188,24 +215,47 @@
     });
 </script>
 <script>
-    // Add a new variant block when the "Add More Variant" button is clicked
-    document.getElementById('add-more-variant').addEventListener('click', function() {
-      var container = document.getElementById('variant-container');
-      var newVariant = document.createElement('div');
-      newVariant.className = 'variant-item';
-      newVariant.innerHTML = `
-        <label>Variant Name:</label>
-        <input type="text" name="variant_name[]" placeholder="e.g., Blue, L" required />
-        <label>Variant Price:</label>
-        <input type="number" step="0.01" name="variant_price[]" required />
-        <label>Discount:</label>
-        <input type="number" step="0.01" name="variant_discount[]" value="0.00" />
-        <label>Stock:</label>
-        <input type="number" name="variant_stock[]" required />
-        <label>Set as Default:</label>
-        <input type="checkbox" name="variant_default[]" value="on">
-      `;
-      container.appendChild(newVariant);
+    document.getElementById('add-more-variant').addEventListener('click', function () {
+        const container = document.getElementById('variant-container');
+
+        const newVariant = document.createElement('div');
+        newVariant.className = 'variant-item border p-3 mb-3 rounded';
+
+        newVariant.innerHTML = `
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Variant Name</label>
+                    <input type="text" name="variant_name[]" class="form-control" placeholder="variant type" required />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Price</label>
+                    <input type="number" name="variant_price[]" class="form-control" placeholder="variant price" required />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Discount</label>
+                    <input type="number" step="0.5" name="variant_discount[]" class="form-control" placeholder="e.g., 10.00" value="0" />
+                </div>
+            </div>
+
+            <div class="row g-3 mt-2">
+                <div class="col-md-4">
+                    <label class="form-label">Stock</label>
+                    <input type="number" name="variant_stock[]" class="form-control" placeholder="items" required />
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="variant_default[]" value="on" />
+                        <label class="form-check-label">Set as Default</label>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(newVariant);
     });
 </script>
+
 {% endblock %}

@@ -234,10 +234,31 @@ def edit_product(request, product_id):
         })
 
 
-@role_required(allowed_roles=['admin'])
+from django.core.paginator import Paginator
+from django.db.models import Q
+
+@role_required(['admin'])
 def product_list_admin(request):
+    search_query = request.GET.get('search', '')
+    
     products = Product.objects.all()
-    return render(request, "products/product_list.html", {"products": products})
+
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(brand__name__icontains=search_query) |
+            Q(category__name__icontains=search_query)
+        )
+
+    paginator = Paginator(products, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "products/product_list.html", {
+        "products": page_obj,
+        "search_query": search_query
+    })
+
 
 
 

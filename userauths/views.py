@@ -109,11 +109,30 @@ def verify_otp(request, email):
 #         form = CustomerLoginForm()
 #     return render(request, 'userauths/customer_login.html', {'form': form})
 
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 @role_required(['admin'])
 def user_management(request):
-    users = User.objects.all().order_by("-date_joined")  # Fetch all users sorted by latest
-    return render(request, "userauths/user_management.html", {"users": users})
+    search_query = request.GET.get('search', '')
+    users = User.objects.all().order_by('-date_joined')
+
+    if search_query:
+        users = users.filter(
+            Q(email__icontains=search_query) | 
+            Q(username__icontains=search_query)
+        )
+
+    paginator = Paginator(users, 6)  # Show 10 users per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "users": page_obj,  # This is the paginated list now
+        "search_query": search_query
+    }
+    return render(request, "userauths/user_management.html", context)
+
 
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)

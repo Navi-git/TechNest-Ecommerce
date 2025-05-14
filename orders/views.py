@@ -534,6 +534,8 @@ def admin_return_approval(request, pk):
             if not main_order.ordersub_set.filter(is_active=True).exists():
                 main_order.order_status = 'Returned'
                 main_order.save()
+            messages.success(request, "Return request approved. Refund is credited to your wallet.")
+            return redirect('order:return_requests')
         else:
             # Process a full order return.
             order = return_request.order_main
