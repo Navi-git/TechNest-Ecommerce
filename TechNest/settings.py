@@ -161,7 +161,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Default primary key field type
@@ -232,7 +232,8 @@ ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = "/email-verification-pending
 PASSKEY_SIGNUP_ENABLED = True
 ACCOUNT_FORMS = {'signup': 'userauths.forms.CustomSignupForm'}
 
-
+# Social login profile image
+SOCIALACCOUNT_ADAPTER = 'accounts.adapter.MySocialAccountAdapter'
 
 # Sending email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

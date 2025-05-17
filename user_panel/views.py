@@ -59,7 +59,6 @@ def user_details(request):
 
 
 from django.contrib.auth import get_user_model
-
 User = get_user_model()
 
 @login_required
@@ -90,6 +89,52 @@ def edit_details(request, pk):
         
         messages.success(request, 'Details Edited Successfully')
         return redirect('user_panel:user_dash')
+
+
+# userauths/views.py
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from .forms import ProfilePictureForm
+import os
+
+@login_required
+@require_POST
+def change_profile_picture(request):
+    form = ProfilePictureForm(request.POST, request.FILES, instance=request.user)
+    if form.is_valid():
+        user = request.user
+
+        # Remove old image if it exists
+        if user.profile_picture and os.path.isfile(user.profile_picture.path):
+            os.remove(user.profile_picture.path)
+
+        form.save()
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Profile picture updated successfully.',
+            'profile_picture_url': user.profile_picture.url
+        })
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Failed to update profile picture.',
+        'errors': form.errors
+    }, status=400)
+
+
+
+@login_required
+@require_POST
+def remove_profile_picture(request):
+    user = request.user
+    if user.profile_picture:
+        if os.path.isfile(user.profile_picture.path):
+            os.remove(user.profile_picture.path)
+        user.profile_picture.delete(save=True)
+
+    return JsonResponse({'status': 'success', 'message': 'Profile picture removed.'})
+
 
 
 @login_required

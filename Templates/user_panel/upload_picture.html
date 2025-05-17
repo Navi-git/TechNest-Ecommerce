@@ -1,0 +1,14 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Change Profile Picture</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+</form>
+
+<a href="{% url 'user_panel:user_dash' %}">Back to Dashboard</a>
+{% endblock %}

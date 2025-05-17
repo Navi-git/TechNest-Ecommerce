@@ -42,6 +42,46 @@
         white-space: nowrap;
     }
 </style>
+<!-- Dashboard Profile Pic Section -->
+<style>
+    .profile-pic-container {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 20px auto;
+    }
+    .profile-pic {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #ccc;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+    .profile-pic:hover {
+        transform: scale(1.05);
+    }
+    .edit-icon {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #ffffff;
+        border-radius: 50%;
+        padding: 5px;
+        border: 1px solid #ccc;
+    }
+    .edit-icon img {
+        width: 20px;
+        height: 20px;
+    }
+</style>
+
+<!-- Lightbox modal -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet" />
+
+
+
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
@@ -83,17 +123,37 @@
                             <div class="tab-content dashboard-content">
                                 <div class="tab-pane fade active show" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
                                     <div class="card">
-                                        <div class="card-body text-center"> 
-                                            <div class="mb-3"> 
-                                                <a   href="#"  aria-expanded="false"> <img class="img-xs rounded-circle" style="height:100px;" src="{% static 'userside/assets/images/icons/adminavatar.jpg' %}" alt="User"></a>
-                                            </div> 
+                                        <div class="card-body text-center">
+
+                                            <hr>
+                                            <div class="profile-pic-container">
+                                            {% if user.profile_picture %}
+                                                <a href="{{ user.profile_picture.url }}" data-lightbox="profile-pic">
+                                                <img id="navProfilePic" src="{{ user.profile_picture.url }}" class="profile-pic" alt="Profile Picture">
+                                                </a>
+                                            {% else %}
+                                                <a href="{% static 'default-user.png' %}" data-lightbox="profile-pic">
+                                                <img id="navProfilePic"  src="{% static 'images/naruto.png' %}" class="profile-pic" alt="Profile Picture">
+                                                </a>
+                                            {% endif %}
+
+                                            <a data-bs-toggle="modal" data-bs-target="#profilePicModal" class="edit-icon" title="Change Picture">
+                                                <!-- SVG icon here -->
+                                                <svg  width="20px" height="20px" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                                                <path fill="#c3889d" d="M18 6.5v1h-5.55a3.97 3.97 0 0 0-6.91.03V7.5H0v-1a2.006 2.006 0 0 1 2-2 1 1 0 0 1 2 0h.8l1.85-1.85A.47.47 0 0 1 7 2.5h4a.47.47 0 0 1 .35.15L13.2 4.5H16a2.006 2.006 0 0 1 2 2zm-9 7a4 4 0 0 1-4-4H0v4a2.006 2.006 0 0 0 2 2h14a2.006 2.006 0 0 0 2-2v-4h-5a4 4 0 0 1-4 4z" style=""></path>
+                                                <circle fill="#11111" cx="9" cy="9.5" r="2" style=""></circle>
+                                                </svg>
+                                            </a>
+                                            </div>
+
+
                                             <h5 class="card-title">{{ user.get_full_name }}</h5> 
                                             <p class="card-text text-muted">{{ user.email }}</p> 
                                             <a href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal" class="btn btn-outline-secondary btn-sm mt-2">Edit Profile</a> 
                                             <a href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal" class="btn btn-outline-secondary btn-sm mt-2">Change Password</a>
                                         </div>
                                         <div class="card-header">
-                                            <h5 class="mb-0">Hello {{ user.username }}! </h5>
+                                            <h5 class="mb-0">Hello {{ user.first_name }}! </h5>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
@@ -163,7 +223,7 @@
                                                             <td >
                                                                 <div>
                                                                     {% if order.order_status == "Confirmed" or order.order_status == "Awaiting Payment" or order.order_status == "Shipped" %}
-                                                                    <form id="cancel-order-form" method="post" action="{% url 'order:cancel_order' order.id %}">
+                                                                    <form class="cancel-order-form" method="post" action="{% url 'order:cancel_order' order.id %}">
                                                                         {% csrf_token %}
                                                                         <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
                                                                             Cancel Order
@@ -173,7 +233,7 @@
                                                                 </div>
                                                                 <div style="margin-top:10px;">
                                                                     {% if order.order_status == "Delivered" %}
-                                                                    <form id="return-order-form" method="post" action="{% url 'order:return_order' order.id %}">
+                                                                    <form class="return-order-form" method="post" action="{% url 'order:return_order' order.id %}">
                                                                         {% csrf_token %}
                                                                         <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
                                                                             Return Order
@@ -531,18 +591,54 @@
         </div>
     </div>
 </div>
-</main>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+<!-- Profile Pic Modal -->
+<div class="modal fade" id="profilePicModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-4 text-center">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">Manage Profile Picture</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Image Preview -->
+        <img id="profilePicPreview"
+             src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'default.png' %}{% endif %}"
+             class="rounded-circle mb-3"
+             style="width: 120px; height: 120px; object-fit: cover;"
+             alt="Profile Picture">
+
+        <!-- Upload Form -->
+        <form id="changeProfilePicForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="file" name="profile_picture" accept="image/*" class="form-control mb-2" required>
+          <button type="submit" class="btn btn-primary w-100 mb-2">Change Picture</button>
+        </form>
+
+        <!-- Remove Button -->
+        <form id="removeProfilePicForm">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-danger w-100">Remove Picture</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+{% comment %} <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> {% endcomment %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let currentForm;
@@ -592,13 +688,13 @@
         });
     
         // Order-level cancel
-        const cancelOrderForms = document.querySelectorAll('#cancel-order-form');
+        const cancelOrderForms = document.querySelectorAll('.cancel-order-form');
         cancelOrderForms.forEach(form => {
             handleConfirmation(form, 'Cancel Order?', 'Are you sure you want to cancel this order?');
         });
     
         // Order-level return
-        const returnOrderForms = document.querySelectorAll('#return-order-form');
+        const returnOrderForms = document.querySelectorAll('.return-order-form');
         returnOrderForms.forEach(form => {
             handleConfirmation(form, 'Return Order?', 'Are you sure you want to return this order?', true);
         });
@@ -635,6 +731,80 @@
         });
     });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const changeForm       = document.getElementById('changeProfilePicForm');
+  const removeForm       = document.getElementById('removeProfilePicForm');
+  const modalElement     = document.getElementById('profilePicModal');
+  const modal            = new bootstrap.Modal(modalElement);
+  const csrftoken        = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  // Helper to reload after modal fully hides
+  function hideAndReload() {
+    modal.hide();
+    modalElement.addEventListener('hidden.bs.modal', () => {
+      window.location.reload();
+    }, { once: true });
+  }
+
+  // Change Profile Picture
+  changeForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const formData = new FormData(changeForm);
+
+    fetch("{% url 'user_panel:change_profile_picture' %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken },
+      body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'success') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Profile picture updated!',
+          timer: 1200,
+          showConfirmButton: false
+        });
+        hideAndReload();
+      } else {
+        Swal.fire('Error', data.message || 'Something went wrong.', 'error');
+      }
+    })
+    .catch(() => {
+      Swal.fire('Error', 'Something went wrong while updating.', 'error');
+    });
+  });
+
+  // Remove Profile Picture
+  removeForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    fetch("{% url 'user_panel:remove_profile_picture' %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'success') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Profile picture removed!',
+          timer: 1200,
+          showConfirmButton: false
+        });
+        hideAndReload();
+      } else {
+        Swal.fire('Error', data.message || 'Something went wrong.', 'error');
+      }
+    })
+    .catch(() => {
+      Swal.fire('Error', 'Something went wrong while removing.', 'error');
+    });
+  });
+});
+</script>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {
