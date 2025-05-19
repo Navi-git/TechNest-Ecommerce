@@ -47,4 +47,5 @@ htmlcov/
 Thumbs.db
 
 # sqlite db
-# db.sqlite3
+db.sqlite3
+*.json
