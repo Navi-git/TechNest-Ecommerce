@@ -204,7 +204,7 @@
                                             <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
                                         </div>
                                         <div class="product-extra-link2">
-                                            <button type="submit" class="button button-add-to-cart">Add to cart</button>
+                                            <button type="submit" class="button button-add-to-cart"  style="width: 140px; height: 40px; padding: 0;">Add to cart</button>
                                             <a id="add-to-wishlist-btn" class="action-btn hover-up"
                                                 data-variant-id="{% with default_variant=product.get_default_variant %}{% if default_variant %}{{ default_variant.id }}{% endif %}{% endwith %}"
                                                 href="javascript:void(0)">
@@ -218,8 +218,6 @@
 
                                 <!-- Product Meta -->
                                 <ul class="product-meta font-xs color-grey mt-50">
-                                    <li class="mb-5">SKU: <a href="#">{{ product.sku }}</a></li>
-                                    <li class="mb-5">Tags: {% for tag in product.tags.all %}<a href="#">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</li>
                                     <li>
                                     Availability:
                                     <span class="in-stock text-primary ml-5">
@@ -353,7 +351,7 @@
                         </div>
                     </div>
                     <div class="row mt-60">
-                        <div class="col-12">
+                        {% comment %} <div class="col-12">
                             <h3 class="section-title style-1 mb-30">Related products</h3>
                         </div>
                         <div class="col-12">
@@ -488,14 +486,27 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="banner-img banner-big wow fadeIn f-none animated mt-50">
+                    </div> {% endcomment %}
+                    {% comment %} <div class="banner-img banner-big wow fadeIn f-none animated mt-50">
                         <img class="border-radius-10" src="{% static 'userside/assets/imgs/banner/banner-4.png' %}" alt="">
                         <div class="banner-text">
                             <h4 class="mb-15 mt-40">Repair Services</h4>
                             <h2 class="fw-600 mb-20">We're an Apple <br>Authorised Service Provider</h2>
                         </div>
-                    </div>
+                    </div> {% endcomment %}
+
+                    <section class="banner-2 section-padding pb-20 mb-20">
+                        <div class="container">
+                            <div class="banner-img banner-big wow fadeIn animated f-none">
+                                <img style="width:100%" src="{%static "userside/assets/imgs/banner/banner-4-1.jpg" %}"  alt="">
+                                <div class="banner-text d-md-block d-none">
+                                    <h4 class="mb-15 mt-40 text-brand">Repair Services</h4>
+                                    <h1 class="fw-600 mb-20" style="color:white">We're an intel<br>Authorised Service Provider</h1>
+                                    <a href="{% url "products:shop_list" %}" class="btn">Learn More <i class="fi-rs-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>

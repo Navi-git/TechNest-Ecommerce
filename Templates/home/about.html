@@ -3,120 +3,11 @@
 
 {% block content %}
 
-<div class="mobile-header-active mobile-header-wrapper-style">
-    <div class="mobile-header-wrapper-inner">
-        <div class="mobile-header-top">
-            <div class="mobile-header-logo">
-                <a href="index.html"><img src="{% static 'assets/imgs/theme/logo.svg' %}" alt="logo"></a>
-            </div>
-            <div class="mobile-menu-close close-style-wrap close-style-position-inherit">
-                <button class="close-style search-close">
-                    <i class="icon-top"></i>
-                    <i class="icon-bottom"></i>
-                </button>
-            </div>
-        </div>
-        <div class="mobile-header-content-area">
-            <div class="mobile-search search-style-3 mobile-header-border">
-                <form action="#">
-                    <input type="text" placeholder="Search for items…">
-                    <button type="submit"><i class="fi-rs-search"></i></button>
-                </form>
-            </div>
-            <div class="mobile-menu-wrap mobile-header-border">
-            
-                <!-- mobile menu start -->
-                <nav>
-                    <ul class="mobile-menu">
-                        <li class="menu-item-has-children"><span class="menu-expand"></span><a href="index.html">Home</a>
-                            <ul class="dropdown">
-                                <li><a href="index.html">Home 1</a></li>
-                                <li><a href="index-2.html">Home 2</a></li>
-                                <li><a href="index-3.html">Home 3</a></li>
-                                <li><a href="index-4.html">Home 4</a></li>
-                            </ul>
-                        </li>
-                        <li class="menu-item-has-children"><span class="menu-expand"></span><a href="shop-grid-right.html">shop</a>
-                            <ul class="dropdown">
-                                <li><a href="shop-grid-right.html">Shop Grid – Right Sidebar</a></li>
-                                <li><a href="shop-grid-left.html">Shop Grid – Left Sidebar</a></li>
-                                <li><a href="shop-list-right.html">Shop List – Right Sidebar</a></li>
-                                <li><a href="shop-list-left.html">Shop List – Left Sidebar</a></li>
-                                <li><a href="shop-fullwidth.html">Shop - Wide</a></li>
-                                <li class="menu-item-has-children"><span class="menu-expand"></span><a href="#">Single Product</a>
-                                    <ul class="dropdown">
-                                        <li><a href="shop-product-right.html">Product – Right Sidebar</a></li>
-                                        <li><a href="shop-product-left.html">Product – Left Sidebar</a></li>
-                                        <li><a href="shop-product-full.html">Product – No sidebar</a></li>
-                                    </ul>
-                                </li>
-                                <li><a href="shop-filter.html">Shop – Filter</a></li>
-                                <li><a href="shop-wishlist.html">Shop – Wishlist</a></li>
-                                <li><a href="shop-cart.html">Shop – Cart</a></li>
-                                <li><a href="shop-checkout.html">Shop – Checkout</a></li>
-                                <li><a href="shop-compare.html">Shop – Compare</a></li>
-                            </ul>
-                        </li>
-                        <li class="menu-item-has-children"><span class="menu-expand"></span><a href="#">Mega menu</a>
-                            <ul class="dropdown">
-                                <li class="menu-item-has-children"><span class="menu-expand"></span><a href="#">Women's Fashion</a>
-                                    <ul class="dropdown">
-                                        <li><a href="shop-product-right.html">Dresses</a></li>
-                                        <li><a href="shop-product-right.html">Blouses & Shirts</a></li>
-                                        <li><a href="shop-product-right.html">Hoodies & Sweatshirts</a></li>
-                                        <li><a href="shop-product-right.html">Women's Sets</a></li>
-                                    </ul>
-                                </li>
-                                <li class="menu-item-has-children"><span class="menu-expand"></span><a href="#">Men's Fashion</a>
-                                    <ul class="dropdown">
-                                        <li><a href="shop-product-right.html">Jackets</a></li>
-                                        <li><a href="shop-product-right.html">Casual Faux Leather</a></li>
-                                        <li><a href="shop-product-right.html">Genuine Leather</a></li>
-                                    </ul>
-                                </li>
-                                <li class="menu-item-has-children"><span class="menu-expand"></span><a href="#">Technology</a>
-                                    <ul class="dropdown">
-                                        <li><a href="shop-product-right.html">Gaming Laptops</a></li>
-                                        <li><a href="shop-product-right.html">Ultraslim Laptops</a></li>
-                                        <li><a href="shop-product-right.html">Tablets</a></li>
-                                        <li><a href="shop-product-right.html">Laptop Accessories</a></li>
-                                        <li><a href="shop-product-right.html">Tablet Accessories</a></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                        
-                    </ul>
-                </nav>
-                <!-- mobile menu end -->
-            </div>
-            <div class="mobile-header-info-wrap mobile-header-border">
-                <div class="single-mobile-header-info mt-30">
-                    <a  href="page-contact.html"> Our location </a>
-                </div>
-                <div class="single-mobile-header-info">
-                    <a href="page-login-register.html">Log In / Sign Up </a>
-                </div>
-                <div class="single-mobile-header-info">
-                    <a href="#">(+01) - 2345 - 6789 </a>
-                </div>
-            </div>
-            <div class="mobile-social-icon">
-                <h5 class="mb-15 text-grey-4">Follow Us</h5>
-                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-facebook.svg' %}" alt=""></a>
-                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-twitter.svg' %}" alt=""></a>
-                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-instagram.svg' %}" alt=""></a>
-                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-pinterest.svg' %}" alt=""></a>
-                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-youtube.svg' %}" alt=""></a>
-            </div>
-        </div>
-    </div>
-</div>
 <main class="main single-page">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
             <div class="breadcrumb">
-                <a href="index.html" rel="nofollow">Home</a>
+                <a href="{% url 'homeapp:home' %}" rel="nofollow">Home</a>
                 <span></span> Pages
                 <span></span> About us
             </div>
@@ -130,11 +21,11 @@
                     <h1 class="font-heading mb-40">
                         We are Building The Destination For Getting Things Done
                     </h1>
-                    <p>Tempus ultricies augue luctus et ut suscipit. Morbi arcu, ultrices purus dolor erat bibendum sapien metus.</p>
-                    <p>Tempus ultricies augue luctus et ut suscipit. Morbi arcu, ultrices purus dolor erat bibendum sapien metus. Sit mi, pharetra, morbi arcu id. Pellentesque dapibus nibh augue senectus. </p>
+                    <p>Our vision is to become the most trusted and innovative platform where people come not just to shop, but to experience excellence — a place where convenience meets quality. We aim to revolutionize the way individuals and businesses connect with products and services by consistently delivering value, fostering sustainability, embracing technology, and putting our customers at the heart of everything we do. </p>
+                    <p>Our goal is to lead with integrity, grow with purpose, and inspire progress in every community we serve. </p>
                 </div>
                 <div class="col-lg-6">
-                    <img src="{% static 'assets/imgs/page/about-1.png' %}" alt="">
+                    <img src="{% static '/assets/imgs/page/about-1.png' %}" alt="">
                 </div>
             </div>
         </div>
@@ -145,11 +36,11 @@
                 <div class="col-md-6">
                     <h6 class="mt-0 mb-15 text-uppercase font-sm text-brand wow fadeIn animated">Our Team</h6>
                     <h2 class="mb-15 wow fadeIn animated">Top team of experts</h2>
-                    <p class="text-grey-3 wow fadeIn animated">Lorem ipsum dolor sit amet consectetur adipisicing elit. Ratione optio perferendis sequi mollitia quis autem ea cupiditate possimus!</p>
+                    <p class="text-grey-3 wow fadeIn animated">Our team believes in the power of collaboration, integrity, and innovation. We are driven by a shared commitment to deliver excellence in everything we do —
+                         from the smallest detail to the biggest decision. We value transparency, continuous learning, and taking ownership of our work. We believe that success is not just measured by results, 
+                         but by the positive impact we create for our customers, our community, and each other. Trust, respect, and a passion for solving real problems are at the core of our team culture, and we grow stronger by embracing challenges together.</p>
                 </div>
-                <div class="col-md-6 text-md-end mt-30">
-                    <a class="btn btn-outline btn-lg btn-brand-outline font-weight-bold text-brand text-hover-white border-radius-5 btn-shadow-brand hover-up">All Members</a>
-                </div>
+           
             </div>
             <div class="position-relative">
                 <div class="row wow fadeIn animated">
@@ -158,12 +49,7 @@
                             <img src="{% static 'assets/imgs/page/avatar-1.jpg' %}" alt="" class="border-radius-10 mb-30 hover-up">
                             <h4 class="fw-500 mb-0">Patric Adams</h4>
                             <p class="fw-400 text-brand mb-10">CEO & Co-Founder</p>
-                            <div class="mobile-social-icon wow fadeIn animated mb-sm-5 mb-md-0 animated">
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-facebook.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-twitter.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-instagram.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-pinterest.svg' %}" alt=""></a>
-                            </div>
+
                         </div>
                     </div>
                     <!--col-->
@@ -172,12 +58,7 @@
                             <img src="{% static 'assets/imgs/page/avatar-2.jpg' %}" alt="" class="border-radius-10 mb-30 hover-up">
                             <h4 class="fw-500 mb-0">Dilan Specter</h4>
                             <p class="fw-400 text-brand mb-10">Head Engineer</p>
-                            <div class="mobile-social-icon wow fadeIn animated mb-sm-5 mb-md-0 animated">
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-facebook.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-twitter.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-instagram.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-pinterest.svg' %}" alt=""></a>
-                            </div>
+
                         </div>
                     </div>
                     <!--col-->
@@ -186,12 +67,7 @@
                             <img src="{% static 'assets/imgs/page/avatar-3.jpg' %}" alt="" class="border-radius-10 mb-30 hover-up">
                             <h4 class="fw-500 mb-0">Tomas Baker</h4>
                             <p class="fw-400 text-brand mb-10">Senior Planner</p>
-                            <div class="mobile-social-icon wow fadeIn animated mb-sm-5 mb-md-0 animated">
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-facebook.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-twitter.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-instagram.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-pinterest.svg' %}" alt=""></a>
-                            </div>
+        
                         </div>
                     </div>
                     <!--col-->
@@ -200,12 +76,6 @@
                             <img src="{% static 'assets/imgs/page/avatar-4.jpg' %}" alt="" class="border-radius-10 mb-30 hover-up">
                             <h4 class="fw-500 mb-0">Norton Mendos</h4>
                             <p class="fw-400 text-brand mb-10">Project Manager</p>
-                            <div class="mobile-social-icon wow fadeIn animated mb-sm-5 mb-md-0 animated">
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-facebook.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-twitter.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-instagram.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'assets/imgs/theme/icons/icon-pinterest.svg' %}" alt=""></a>
-                            </div>
                         </div>
                     </div>
                     <!--col-->
@@ -217,9 +87,9 @@
         <div class="container">
             <div class="row mb-50">
                 <div class="col-lg-12 col-md-12 text-center">
-                    <h6 class="mt-0 mb-5 text-uppercase  text-brand font-sm wow fadeIn animated">Evara Coporation</h6>
+                    <h6 class="mt-0 mb-5 text-uppercase  text-brand font-sm wow fadeIn animated">Technest Coporation</h6>
                     <h2 class="mb-15 text-grey-1 wow fadeIn animated">Our main branches<br> around the world</h2>
-                    <p class="w-50 m-auto text-grey-3 wow fadeIn animated">At vero eos et accusamus et iusto odio dignissimos ducimus quiblanditiis praesentium. ebitis nesciunt voluptatum dicta reprehenderit accusamus</p>
+                    <p class="w-50 m-auto text-grey-3 wow fadeIn animated">“Driven by purpose, united by passion.”</p>
                 </div>
             </div>
             <div class="row">
@@ -247,7 +117,8 @@
                 <div class="col-lg-12 col-md-12 text-center">
                     <h6 class="mt-0 mb-10 text-uppercase  text-brand font-sm wow fadeIn animated">some facts</h6>
                     <h2 class="mb-15 text-grey-1 wow fadeIn animated">Take a look what<br> our clients say about us</h2>
-                    <p class="w-50 m-auto text-grey-3 wow fadeIn animated">At vero eos et accusamus et iusto odio dignissimos ducimus quiblanditiis praesentium. ebitis nesciunt voluptatum dicta reprehenderit accusamus</p>
+                    <p class="w-50 m-auto text-grey-3 wow fadeIn animated">Our clients are at the heart of everything we do. Their feedback reflects the trust they've placed in us and the impact we've made.
+                         Through their words, we proudly share stories of satisfaction, success, and long-lasting partnerships.</p>
                 </div>
             </div>
             <div class="row align-items-center">
@@ -258,10 +129,11 @@
                         </div>
                         <div class="pl-30">
                             <h5 class="mb-5 fw-500">
-                                J. Bezos
+                                Aarav Menon
                             </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
+                            <p class="font-sm text-grey-5">CEO, Zenith Retail</p>
+                            <p class="text-grey-3">"Working with this team has been a game-changer for our business. Their attention to detail and commitment to delivering on time is unmatched.".</p>
+
                         </div>
                     </div>
                 </div>
@@ -272,10 +144,10 @@
                         </div>
                         <div class="pl-30">
                             <h5 class="mb-5 fw-500">
-                                B.Gates
+                                B. Gates
                             </h5>
                             <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
+                            <p class="text-grey-3">"They understood our vision from day one and brought it to life beyond expectations. Professional, creative, and truly collaborative."</p>
                         </div>
                     </div>
                 </div>
@@ -286,10 +158,10 @@
                         </div>
                         <div class="pl-30">
                             <h5 class="mb-5 fw-500">
-                                B. Meyers
+                                Rohit Nair
                             </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
+                            <p class="font-sm text-grey-5">Founder, GreenCart India</p>
+                            <p class="text-grey-3">"Their support and expertise helped us scale faster than we imagined. It's rare to find a team this reliable."</p>
                         </div>
                     </div>
                 </div>
@@ -300,10 +172,10 @@
                         </div>
                         <div class="pl-30">
                             <h5 class="mb-5 fw-500">
-                                J. Bezos
+                                S. Naveen
                             </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
+                            <p class="font-sm text-grey-5">Operations Manager, StyleAura</p>
+                            <p class="text-grey-3">"Every project we've handled together has been smooth and successful. They feel more like a part of our own team."</p>
                         </div>
                     </div>
                 </div>
@@ -314,10 +186,10 @@
                         </div>
                         <div class="pl-30">
                             <h5 class="mb-5 fw-500">
-                                B.Gates
+                               M.Mukesh
                             </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
+                            <p class="font-sm text-grey-5">Product Manager, EduBridge Solutions</p>
+                            <p class="text-grey-3">"They bring smart ideas, clean execution, and proactive communication to the table. Highly recommended!"</p>
                         </div>
                     </div>
                 </div>
@@ -328,48 +200,11 @@
                         </div>
                         <div class="pl-30">
                             <h5 class="mb-5 fw-500">
-                                B. Meyers
+                                S.R Khan
                             </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
+                            <p class="font-sm text-grey-5">Co-founder, PetHaus</p>
+                            <p class="text-grey-3">"We loved how approachable and committed they were throughout the project. They truly care about client success."</p>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-30">
-                <div class="col-12 text-center">
-                    <p class="wow fadeIn animated">
-                        <a class="btn btn-brand text-white btn-shadow-brand hover-up btn-lg">View More</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="section-padding">
-        <div class="container pb-25">
-            <h3 class="section-title mb-20 wow fadeIn animated text-center"><span>Featured</span> Clients</h3>
-            <div class="carausel-6-columns-cover position-relative wow fadeIn animated">
-                <div class="carausel-6-columns text-center" id="carausel-6-columns-3">
-                    <div class="brand-logo">
-                        <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-1.png' %}" alt="">
-                    </div>
-                    <div class="brand-logo">
-                        <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-2.png' %}" alt="">
-                    </div>
-                    <div class="brand-logo">
-                        <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-3.png' %}" alt="">
-                    </div>
-                    <div class="brand-logo">
-                        <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-4.png' %}" alt="">
-                    </div>
-                    <div class="brand-logo">
-                        <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-5.png' %}" alt="">
-                    </div>
-                    <div class="brand-logo">
-                        <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-6.png' %}" alt="">
-                    </div>
-                    <div class="brand-logo">
-                        <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-3.png' %}" alt="">
                     </div>
                 </div>
             </div>

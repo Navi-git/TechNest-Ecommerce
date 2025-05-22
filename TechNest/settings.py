@@ -28,11 +28,25 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", cast=bool)
 
-# Add 'localhost' to ALLOWED_HOSTS for development
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-DOMAINS = ['localhost', '127.0.0.1']
-SECURE_SSL_REDIRECT = False
-CSRF_TRUSTED_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000"]
+
+# ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+# DOMAINS = ['127.0.0.1', 'localhost']
+
+ALLOWED_HOSTS = ['3.106.55.189', 'www.technest.sbs', 'technest.sbs']
+DOMAINS = ['3.106.55.189', 'www.technest.sbs', 'technest.sbs']
+
+SECURE_SSL_REDIRECT = True  # Enable redirect to HTTPS in production
+CSRF_TRUSTED_ORIGINS = [
+    'https://www.technest.sbs',
+    'https://technest.sbs',
+    'http://3.106.55.189', 
+]
+
+# For production
+
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Application definition
 
@@ -246,3 +260,4 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
 # RAZORPAY settings
 RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")
+# https://technest.sbs/
