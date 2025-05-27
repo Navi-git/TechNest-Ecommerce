@@ -37,13 +37,22 @@ class OrderMain(models.Model):
 
 
 class OrderSub(models.Model):
+    STATUS_CHOICES = [
+    ("Pending", "Pending"),
+    ("Confirmed", "Confirmed"),
+    ("Shipped", "Shipped"),
+    ("Delivered", "Delivered"),
+    ("ReturnReq", "Return Requested"), 
+    ("Returned", "Returned"),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     main_order = models.ForeignKey(OrderMain, on_delete=models.CASCADE)
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     quantity = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
-    status = models.CharField(max_length=10, blank=True, null=True)
+    status = models.CharField(max_length=30, blank=True, null=True,choices=STATUS_CHOICES)
 
     def total_cost(self):
 

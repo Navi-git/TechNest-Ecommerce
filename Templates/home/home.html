@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block css %}
+
 <style>
     body {
         background-image: url("{% static 'userside/assets/imgs/slider/bg.jpg' %}");
@@ -65,9 +66,11 @@
         border-radius: 50%;
     }
 </style>
+
 {% endblock css %}
 
 {% block content %}
+
     <div class="mobile-header-active mobile-header-wrapper-style">
         <div class="mobile-header-wrapper-inner">
             <div class="mobile-header-top">
@@ -121,6 +124,7 @@
             </div>
         </div>
     </div>
+
     <main class="main">
         <section class="home-slider position-relative mb-30">
             <div class="home-slide-cover bg-grey-10 mt-0">
@@ -184,7 +188,6 @@
             </div>
         </section>
 
-
         <section class="popular-categories section-padding mt-15 mb-20">
             <div class="container wow fadeIn animated">
                 <h3 class="section-title mb-20"><span>Popular</span> Categories</h3>
@@ -211,8 +214,6 @@
                 </div>
             </div>
         </section>
-
-
 
         {% comment %} <section class="section-padding mb-20">
             <div class="container wow fadeIn animated">
@@ -439,7 +440,6 @@
             </div>
         </section> {% endcomment %}
 
-
         <section class="banners mb-40">
             <div class="container">
                 <div class="row">
@@ -476,7 +476,6 @@
                 </div>
             </div>
         </section>        
-        
     </main>
     <!--End Main-->
     {% endblock content%}

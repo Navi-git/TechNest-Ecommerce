@@ -57,32 +57,32 @@
                     </a>
                     
                 </li>
-                <li class="menu-item">
+                {% comment %} <li class="menu-item">
                     <a class="menu-link" href="#"> <i class="icon material-icons md-monetization_on"></i>
                         <span class="text">Transactions</span>
                     </a>
                     
-                </li>
+                </li> {% endcomment %}
                 <li class="menu-item">
                     <a class="menu-link" href="{% url 'userauths:user_management' %}"> <i class="icon material-icons md-person"></i>
                         <span class="text">Users</span>
                     </a>
 
                 </li>
-                <li class="menu-item">
+                {% comment %} <li class="menu-item">
                     <a class="menu-link" href="#"> <i class="icon material-icons md-comment"></i>
                         <span class="text">Reviews</span>
                     </a>
-                </li>
+                </li> {% endcomment %}
                 <li class="menu-item">
-                    <a class="menu-link" href="{% url "coupons:coupon_list" %}""> <i class="icon material-icons md-stars"></i>
+                    <a class="menu-link" href="{% url "coupons:coupon_list" %}"> <i class="icon material-icons md-stars"></i>
                         <span class="text"> Coupons </span> </a>
                 </li>
-                <li class="menu-item">
+                {% comment %} <li class="menu-item">
                     <a class="menu-link" disabled href="#"> <i class="icon material-icons md-pie_chart"></i>
                         <span class="text">Statistics</span>
                     </a>
-                </li>
+                </li> {% endcomment %}
                 <li class="menu-item">
                     <a class="menu-link" href="{% url 'order:admin_orders' %}"><i class="icon material-icons md-receipt_long"></i>
                         <span class="text">Orders</span>
@@ -98,11 +98,11 @@
             </ul>
             <hr>
             <ul class="menu-item">
-                <li class="menu-item">
+                {% comment %} <li class="menu-item">
                     <a class="menu-link" href="#"> <i class="icon material-icons md-local_offer"></i>
                         <span class="text"> Starter page </span>
                     </a>
-                </li>
+                </li> {% endcomment %}
             </ul>
             <br>
             <br>
@@ -130,7 +130,7 @@
                     <li class="dropdown nav-item">
                         <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="{% static 'adminside/assets/imgs/people/avatar2.jpg' %}" alt="User"></a>
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
-                            <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a>
+                            {% comment %} <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a> {% endcomment %}
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="{% url "userauths:admin_logout" %}"><i class="material-icons md-exit_to_app"></i>Logout</a>
                         </div>
@@ -161,7 +161,7 @@
                 <div class="col-sm-6">
                     <script>
                     document.write(new Date().getFullYear())
-                    </script> ©, Evara - HTML Ecommerce Template .
+                    </script> ©, Technest - Ecommerce Site for Programmable boards .
                 </div>
                 <div class="col-sm-6">
                     <div class="text-sm-end">

@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 from .models import Wishlist
 from products.models import *
 from cart.models import *
+from userauths.decorators import role_required
 
 @login_required
 @require_POST

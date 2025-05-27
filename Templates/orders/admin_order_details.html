@@ -30,8 +30,9 @@
                             {% else %}
                             <option>Change status</option>
                             <option>Confirmed</option>
-                            <option>Delivered</option>
                             <option>Shipped</option>
+                            <option>Delivered</option>
+                            <option>Canceled</option>
                             {% endif %}
                         </select>
                         {% if orders.order_status != "Canceled" and orders.order_status != "Delivered" %}
@@ -101,7 +102,7 @@
                                     <th width="10%">Quantity</th>
                                     <th width="10%">Status</th>
                                     <th width="10%">Discount Amount</th>
-                                    <th width="10%" >Final Total</th>
+                                    <th width="10%">Final Total</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -144,7 +145,7 @@
                                                 <dd>
                                                     <span class="badge rounded-pill 
                                                         {% if orders.payment_status == True %} bg-success text-light {% elif orders.payment_status == False %} bg-danger text-dark {% else %} bg-danger text-light {% endif %}">
-                                                        {% if orders.payment_status == True %} Paid {% else %} Pending{% endif%}
+                                                        {% if orders.payment_status == True %} Paid {% else %}Payment Pending{% endif%}
                                                     </span>
                                                 </dd>
                                             </dl>
@@ -188,7 +189,7 @@
         <div class="col-sm-6">
             <script>
             document.write(new Date().getFullYear())
-            </script> ©, Evara - HTML Ecommerce Template .
+            </script> ©, Technest - Place where techies meet.
         </div>
         <div class="col-sm-6">
             <div class="text-sm-end">

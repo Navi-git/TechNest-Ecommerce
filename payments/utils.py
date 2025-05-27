@@ -1,7 +1,7 @@
 # payments/utils.py
 from payments.models import Wallet, WalletTransaction # Adjust if your transaction model is in a different module
 
-def process_wallet_payment(user, order_main, final_amount):
+def process_wallet_payment(user, final_amount):
     """
     Process the wallet payment for an order.
     Returns a tuple: (success, message) where success is a boolean.
@@ -20,10 +20,10 @@ def process_wallet_payment(user, order_main, final_amount):
             wallet.balance -= final_amount
             wallet.save()
             
-            # Update the order status accordingly
-            order_main.payment_status = True
-            order_main.payment_option = "Wallet"
-            order_main.save()
+            # # Update the order status accordingly
+            # order_main.payment_status = True
+            # order_main.payment_option = "Wallet"
+            # order_main.save()
             
             return True, "Payment successful with wallet."
         else:

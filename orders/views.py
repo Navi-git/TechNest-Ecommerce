@@ -164,7 +164,7 @@ def order_verification_view(request):
         
         # If Wallet payment, process through wallet utility
         elif payment_option == "Wallet":
-            success, msg = process_wallet_payment(current_user, None, final_amount)
+            success, msg = process_wallet_payment(current_user, final_amount)
             if not success:
                 messages.error(request, msg)
                 return redirect('cart:checkout')
@@ -279,10 +279,14 @@ def order_failure(request):
     order_id = request.session.get('order_id', None)
     date = request.session.get('order_date', None)
     order_status = request.session.get('order_status', None)
+    order = OrderMain.objects.get(order_id=order_id)
     
     # You can add a failure-specific message or additional context as needed.
     failure_message = "Unfortunately, your payment was not successful. Please try again or contact support."
-    
+    order_status = "Failed"
+    order.order_status = order_status
+    order.save()
+
     context = {
         'order_id': order_id,
         'date': date,
@@ -342,13 +346,23 @@ def order_status(request, pk):
     if request.method == "POST":
         order = get_object_or_404(OrderMain, id=pk)
         new_status = request.POST.get('order_status')
-        if new_status:
+        if new_status == 'Delivered':
+            order.order_status = new_status
+            order.payment_status = True
+            order.save()
+            messages.success(request, 'Order payment completed & status updated as Delivered.')
+            return redirect('order:admin_orders_details', pk)
+        elif new_status:
             order.order_status = new_status
             order.save()
+            messages.success(request, 'Order status updated.')
             return redirect('order:admin_orders_details', pk)
         else:
+            messages.error(request, 'Some error occured during status update')
             return HttpResponse("No status selected", status=400)
-    return HttpResponse("Method not allowed", status=405)
+    else:
+        messages.info(request, 'Not the expected request method.')
+        return HttpResponse("Method not allowed", status=405)
 
 
 from django.shortcuts import redirect, get_object_or_404
@@ -385,7 +399,7 @@ def cancel_order(request, pk):
         order.save()
 
         wallet = Wallet.objects.get(user=order.user)
-        wallet.credit(order.final_amount, order=order, description=f"Refund for cancelled order #{order.order_id}." )
+        wallet.credit(order.final_amount, order=order_item, description=f"Refund for cancelled order #{order.order_id}." )
 
 
     except OrderMain.DoesNotExist:
@@ -418,13 +432,21 @@ def admin_cancel_order(request, pk):
         order.order_status = "Canceled"
         order.is_active = False
         order.save()
-        
-        messages.success(request, "Order canceled successfully.")
-        return redirect('orders:admin_orders_details', pk=order.id)
+
+        if order.payment_status:
+            wallet = Wallet.objects.get(user=order.user)
+            wallet.credit(order.final_amount, order=order_item, description=f"Refund for order #{order.order_id}. The order is cancelled due to unfoseen difficulties." )
+            order.payment_status=False
+            order.save()
+            messages.success(request, "Order canceled and amount refunded successfully.")
+            return redirect('order:admin_orders_details', pk=order.id)
+        else:
+            messages.success(request, "Order canceled successfully. No refund was required.")
+            return redirect('order:admin_orders_details', pk=order.id)
     
     except OrderMain.DoesNotExist:
         messages.error(request, "Order does not exist.")
-        return redirect('orders:admin_orders_details', pk=pk)
+        return redirect('order:admin_orders_details', pk=pk)
     
 
 
@@ -549,7 +571,7 @@ def admin_return_approval(request, pk):
             order.is_active = False
             order.save()
 
-            if order.payment_option != "Cash On Delivery":
+            if order.payment_status == True:
 
                 refund_amount = order.final_amount
                 wallet = Wallet.objects.get(user=order.user)
@@ -561,7 +583,7 @@ def admin_return_approval(request, pk):
                 messages.success(request, "Return request approved. Refund is credited to your wallet.")
                 return redirect('order:return_requests')
             else:
-                messages.success(request, "Return request approved. Refund is not credited due to COD order .")
+                messages.success(request, "Return request approved.")
                 return redirect('order:return_requests')
     
     elif action == "Reject":
@@ -570,6 +592,9 @@ def admin_return_approval(request, pk):
             return_request.order_sub.status = "Return Rejected"
             return_request.order_sub.save()
         return_request.save()
+        return_request.order_main.order_status = 'Delivered'
+        return_request.order_main.save()
+
         messages.success(request, "Return request rejected.")
         return redirect('order:return_requests')
     
