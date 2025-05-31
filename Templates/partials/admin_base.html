@@ -13,7 +13,7 @@
     <meta property="og:url" content="">
     <meta property="og:image" content="">
     <!-- Favicon -->
-    <link rel="shortcut icon" type="image/x-icon" href="adminside/assets/imgs/theme/favicon.svg">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'userside/assets/imgs/theme/favicon.svg' %}">
     <!-- Template CSS -->
     <link href="{% static 'adminside/assets/css/main.css' %}" rel="stylesheet" type="text/css" />
     <!-- Cropper js CSS -->
@@ -31,8 +31,9 @@
     <div class="screen-overlay"></div>
     <aside class="navbar-aside" id="offcanvas_aside">
         <div class="aside-top">
-            <a href="index.html" class="brand-wrap">
-                <img src="{% static 'adminside/assets/imgs/theme/logo.svg' %}" class="logo" alt="Evara Dashboard">
+            <a href="{% url "userauths:admin_dashboard" %}" class="brand-wrap">
+                {% comment %} <img src="{% static 'adminside/assets/imgs/theme/logo.svg' %}" class="logo" alt="Technest Dashboard"> {% endcomment %}
+                <img src="{% static 'images/logo.png' %}" alt="logo" style="height:45px; width:auto;"  alt="Technest Dashboard">
             </a>
             <div>
                 <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i> </button>

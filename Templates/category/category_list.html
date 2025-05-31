@@ -74,9 +74,9 @@
                                     <td>{{ category.slug }}</td>
                                     <td>
                                         {% if category.is_active %}
-                                            Active
+                                            <span class="badge bg-success"> Active </span>
                                         {% else %}
-                                            Inactive
+                                            <span class="badge bg-danger"> Inactive </span>
                                         {% endif %}
                                     </td>
                                     <td>{{ category.created_at }}</td>

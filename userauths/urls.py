@@ -8,6 +8,7 @@ urlpatterns = [
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),  # Dashboard URL
     path('admin-logout/', views.admin_logout, name='admin_logout'),  # Logout URL
     path("admin/user-management/", views.user_management, name="user_management"),
+    path("admin/users/<int:user_id>/toggle-block/", views.toggle_user_block, name="toggle_user_block"),
     
     # path('signup/', views.customer_signup, name='customer_signup'),             # Signup URL
     path('verify-otp/<str:email>/', views.verify_otp, name='verify_otp'),       # Verify OTP URL

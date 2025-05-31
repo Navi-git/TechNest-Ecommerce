@@ -134,6 +134,23 @@ def user_management(request):
     return render(request, "userauths/user_management.html", context)
 
 
+from django.shortcuts import get_object_or_404, redirect
+
+@role_required('admin')
+def toggle_user_block(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    if user.is_superuser:
+        messages.error(request, "You cannot block/unblock a superuser.")
+        return redirect('userauths:user_management')
+    
+    user.is_blocked = not user.is_blocked
+    user.save()
+
+    state = "blocked" if user.is_blocked else "unblocked"
+    messages.success(request, f"User {user.username} has been {state}.")
+    return redirect('userauths:user_management')
+
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @role_required(['admin'])

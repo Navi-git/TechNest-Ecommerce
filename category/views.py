@@ -13,7 +13,7 @@ from django.db.models import Q
 @role_required(['admin'])
 def list_categories(request):
     query = request.GET.get('q')
-    categories = Category.objects.all()
+    categories = Category.objects.all().order_by('-updated_at')
 
     if query:
         categories = categories.filter(Q(name__icontains=query) | Q(description__icontains=query))

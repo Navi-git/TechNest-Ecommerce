@@ -58,7 +58,7 @@
                                 <!-- Wishlist Icon -->
                                 <div class="header-action-icon-2">
                                     <a href="{% url 'wishlist:wishlist' %}">
-                                        <img class="svgInject" alt="Evara" src="{% static 'userside/assets/imgs/theme/icons/icon-heart.svg' %}">
+                                        <img class="svgInject" alt="Technest" src="{% static 'userside/assets/imgs/theme/icons/icon-heart.svg' %}">
                                         {% if request.user.is_authenticated and wishlist_count %}
                                             <span id="wishlist-count" class="pro-count blue">{{ wishlist_count|default:"0" }}</span>
                                         {% else %}
@@ -70,7 +70,7 @@
                                 <!-- Cart Icon -->
                                 <div class="header-action-icon-2">
                                     <a class="mini-cart-icon" href="{% url 'cart:cart_detail' %}">
-                                        <img alt="Evara" src="{% static 'userside/assets/imgs/theme/icons/icon-cart.svg' %}">
+                                        <img alt="Technest" src="{% static 'userside/assets/imgs/theme/icons/icon-cart.svg' %}">
                                         {% if request.user.is_authenticated and cart_count %}
                                             <span class="pro-count blue">{{ cart_count }}</span>
                                         {% else %}

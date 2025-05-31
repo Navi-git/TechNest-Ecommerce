@@ -49,7 +49,7 @@
                                 <td><b>{{ order.address.name }}</b></td>
                                 <td>{{ order.order_id }}</td>
                                 <td>₹{{ order.total_amount }}</td>
-                                <td><span class="badge rounded-pill {% if order.order_status == 'Delivered' %}alert-success{% else %}alert-danger{% endif%}">{{ order.order_status }}</span></td>
+                                <td><span class="badge rounded-pill {% if order.order_status == 'Delivered' %}bg-success{% elif order.order_status == 'Confirmed' %}bg-warning{% elif order.order_status == 'Canceled' %}bg-danger{% elif order.order_status == 'Shipped' %}bg-primary{% elif order.order_status == 'Returned' %}bg-secondary{% else %}bg-info{% endif%}">{{ order.order_status }}</span></td>
                                 <td>{{ order.date }}</td>
                                 <td class="text-end">
                                     <a href="{% url 'order:admin_orders_details' order.id %}" class="btn btn-md rounded font-sm">Detail</a>
@@ -94,19 +94,5 @@
         </div>
         
     </section> <!-- content-main end// -->
-    <footer class="main-footer font-xs">
-        <div class="row pb-30 pt-15">
-            <div class="col-sm-6">
-                <script>
-                document.write(new Date().getFullYear())
-                </script> ©, Evara - HTML Ecommerce Template .
-            </div>
-            <div class="col-sm-6">
-                <div class="text-sm-end">
-                    All rights reserved
-                </div>
-            </div>
-        </div>
-    </footer>
 
 {% endblock %}

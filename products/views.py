@@ -464,8 +464,9 @@ def product_detail(request, product_id):
 # User: Product List
 
 def shop_list(request):
-    products = Product.objects.prefetch_related("images", "variants").filter(is_active=True)
-    categories = Category.objects.all()
+    
+    categories = Category.objects.filter(is_active=True)
+    products = Product.objects.prefetch_related("images", "variants").filter(is_active=True, category__is_active=True)
 
     # Filtering by category
     category_id = request.GET.get('category')

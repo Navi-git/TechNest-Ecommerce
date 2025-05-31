@@ -91,13 +91,14 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    "accounts.middleware.OTPVerificationMiddleware",
     'django.contrib.messages.middleware.MessageMiddleware',
+    "accounts.middleware.OTPVerificationMiddleware",
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'TechNest.urls'
 
+from django.conf import global_settings
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
