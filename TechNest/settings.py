@@ -30,25 +30,25 @@ DEBUG = config("DEBUG", cast=bool)
 
 # Add 'localhost' to ALLOWED_HOSTS for development
 
-ALLOWED_HOSTS = ['127.0.0.1']
-DOMAINS = ['127.0.0.1']
+# ALLOWED_HOSTS = ['127.0.0.1']
+# DOMAINS = ['127.0.0.1']
 
-# ALLOWED_HOSTS = ['3.106.55.189', 'www.technest.sbs', 'technest.sbs']
-# DOMAINS = [ '3.106.55.189', 'www.technest.sbs', 'technest.sbs']
+ALLOWED_HOSTS = ['3.106.55.189', 'www.technest.sbs', 'technest.sbs']
+DOMAINS = [ '3.106.55.189', 'www.technest.sbs', 'technest.sbs']
 
-SECURE_SSL_REDIRECT = False  # Enable redirect to HTTPS in production
-CSRF_TRUSTED_ORIGINS = [ 'http://127.0.0.1' ]
-# CSRF_TRUSTED_ORIGINS = [
-#     'https://www.technest.sbs',
-#     'https://technest.sbs',
-#     'http://3.106.55.189',
-# ]
+SECURE_SSL_REDIRECT = True  # Enable redirect to HTTPS in production
+# CSRF_TRUSTED_ORIGINS = [ 'http://127.0.0.1' ]
+CSRF_TRUSTED_ORIGINS = [
+    'https://www.technest.sbs',
+    'https://technest.sbs',
+    'http://3.106.55.189',
+]
 
 # For production
 
-# SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Application definition
 
