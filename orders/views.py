@@ -621,26 +621,24 @@ def individual_cancel(request, pk):
         messages.error(request, 'Order cannot be canceled at this stage.')
         return redirect('user_panel:user_dash')
     
-    # Refund only if payment was not COD
-    if order_sub.main_order.payment_option != "Cash on Delivery":
+    # --------- PARTIAL (PER‐ITEM) REFUND ----------
+    if order_sub.main_order.payment_status == True:
         product_amount = order_sub.final_total_cost()  
         cart_total = sum(i.final_total_cost() for i in OrderSub.objects.filter(main_order_id = order_sub.main_order.id)) 
         product_percent = (product_amount/cart_total )*100 
         refund_amount = order_sub.main_order.final_amount * product_percent / 100
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
-        wallet.credit(refund_amount, order=order_sub, description="Refund for canceled product")
+        wallet.credit(refund_amount, order=order_sub, description="Refund for canceled product (OrderItem #{order_sub.id})")
 
     order_sub.is_active = False
     order_sub.save()
     
-    # If all items in the main order are canceled, update the order status.
-    all_canceled = not order_sub.main_order.ordersub_set.filter(is_active=True).exists()
-    if all_canceled and order_sub.main_order.payment_option != "Cash on Delivery":
-        order_sub.main_order.order_status = 'Canceled'
+    # --------- IF ALL ITEMS ARE NOW CANCELED, JUST UPDATE MAIN ORDER STATUS ----------
+    last_item = not order_sub.main_order.ordersub_set.filter(is_active=True).exists()
+    if last_item:
+        # Only change status; do NOT issue another refund here.
+        order_sub.main_order.order_status = "Canceled"
         order_sub.main_order.save()
-        refund_amount = order_sub.main_order.final_amount
-        wallet, _ = Wallet.objects.get_or_create(user=request.user)
-        wallet.credit(refund_amount, order=order_sub, description="Refund for canceled order #{order_sub.order_main.order_id}.")
     
     # Restore the variant's stock and update item status.
     order_sub.variant.stock += order_sub.quantity
