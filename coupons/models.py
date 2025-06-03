@@ -38,7 +38,7 @@ class CouponUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='coupons')
     coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE)
     used = models.BooleanField(default=False)
-    order_id = models.IntegerField(null=True, blank=True, 
+    order_id = models.CharField(max_length=100, null=True, blank=True, 
         help_text="Reference to the Order ID where this coupon was used")
     redeemed_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
