@@ -372,7 +372,7 @@ from django.contrib.auth.decorators import login_required
 from .models import OrderMain, OrderSub
 
 
-@login_required
+@role_required('customer')
 def cancel_order(request, pk):
     if request.method != "POST":
         return HttpResponse("Method not allowed", status=405)
@@ -451,7 +451,7 @@ def admin_cancel_order(request, pk):
 
 
 
-@login_required
+@role_required('customer')
 def return_order(request, pk):
     if request.method != "POST":
         return redirect('user_panel:user_dash')
@@ -606,7 +606,7 @@ def admin_return_approval(request, pk):
 
 
 
-@login_required
+@role_required('customer')
 def individual_cancel(request, pk):
     if request.method != "POST":
         return HttpResponse("Method not allowed", status=405)
@@ -651,7 +651,7 @@ def individual_cancel(request, pk):
     return redirect('user_panel:user_dash')
 
 
-@login_required
+@role_required('customer')
 def individual_return(request, pk):
     if request.method != "POST":
         return HttpResponse("Method not allowed", status=405)

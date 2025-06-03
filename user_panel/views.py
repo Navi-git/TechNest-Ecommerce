@@ -99,7 +99,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import ProfilePictureForm
 import os
 
-@login_required
+@role_required(['customer'])
 @require_POST
 def change_profile_picture(request):
     form = ProfilePictureForm(request.POST, request.FILES, instance=request.user)
@@ -124,7 +124,7 @@ def change_profile_picture(request):
 
 
 
-@login_required
+@role_required(['customer'])
 @require_POST
 def remove_profile_picture(request):
     user = request.user
@@ -137,7 +137,7 @@ def remove_profile_picture(request):
 
 
 
-@login_required
+@role_required(['customer'])
 def change_password(request):
     if request.method == "GET":
         # Render the change password template (or a section within user_dash.html)
@@ -180,7 +180,7 @@ def change_password(request):
 
 
 @login_required
-@role_required(['customer'])  # Remove or adjust if not needed.
+@role_required(['customer'])  
 def create_address(request):
     if request.method == "POST":
         user = request.user

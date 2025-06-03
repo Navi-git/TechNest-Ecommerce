@@ -202,7 +202,7 @@ def admin_dashboard(request):
     return render(request, 'userauths/admin_dash.html',context) 
 
 
-
+@role_required(['admin'])
 def best_selling_products(request):
     best_selling_products = OrderSub.objects.filter(
         main_order__order_status="Delivered"
@@ -220,6 +220,7 @@ def best_selling_products(request):
         'best_selling_products': best_selling_products
     })
 
+@role_required(['admin'])
 def best_selling_brands(request):
     best_selling_brands = OrderSub.objects.filter(
         main_order__order_status="Delivered"
@@ -237,6 +238,7 @@ def best_selling_brands(request):
         'best_selling_brands': best_selling_brands
     })
 
+@role_required(['admin'])
 def best_selling_category(request):
     best_selling_categories = OrderSub.objects.filter(
         main_order__order_status="Delivered"
@@ -258,7 +260,7 @@ def best_selling_category(request):
 from django.utils import timezone
 from datetime import timedelta
 
-
+@role_required(['admin'])
 def sales_report(request):
     filter_type = request.GET.get('filter', None)
 
@@ -298,7 +300,7 @@ def sales_report(request):
 
 from datetime import datetime
 
-
+@role_required(['admin'])
 def order_date_filter(request):
     if request.method == 'POST':
         start_date = request.POST.get('start_date')

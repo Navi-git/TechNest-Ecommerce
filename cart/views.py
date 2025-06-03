@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from user_panel.models import UserAddress  
 from coupons.utils import get_available_coupons_for_user
 
+from userauths.decorators import role_required
 def get_user_cart(request):
     """Retrieve or create a cart for an authenticated user."""
     if request.user.is_authenticated:
@@ -210,6 +211,7 @@ def clear_cart(request):
 from coupons.utils import calculate_coupon_discount
 from coupons.models import *
 
+@role_required(['customer','admin'])
 def checkout(request):
     # Ensure user is authenticated
     if not request.user.is_authenticated:
@@ -284,6 +286,7 @@ def checkout(request):
 
 from django.http import JsonResponse
 
+@role_required(['customer'])
 @require_POST
 def apply_coupon(request):
     code = request.POST.get('coupon_code', '').strip().upper()
@@ -336,6 +339,7 @@ def apply_coupon(request):
 
 from django.views.decorators.http import require_POST
 
+@role_required(['customer'])
 @require_POST
 def remove_coupon(request):
     try:

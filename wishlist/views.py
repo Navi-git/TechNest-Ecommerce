@@ -7,7 +7,7 @@ from products.models import *
 from cart.models import *
 from userauths.decorators import role_required
 
-@login_required
+@role_required(['customer'])
 @require_POST
 def add_to_wishlist(request):
     variant_id = request.POST.get('variant_id')
@@ -30,7 +30,7 @@ def add_to_wishlist(request):
 
 
 
-@login_required
+@role_required(['customer'])
 @require_POST
 def remove_from_wishlist(request):
     """
@@ -52,7 +52,7 @@ def remove_from_wishlist(request):
 
 
 
-@login_required
+@role_required(['customer'])
 @require_POST
 def wishlist_to_cart(request):
     """
@@ -103,7 +103,7 @@ def wishlist_to_cart(request):
 
 
 
-@login_required
+@role_required(['customer'])
 def wishlist_view(request):
     """
     Render the wishlist with all wishlist items.
