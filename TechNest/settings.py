@@ -41,7 +41,7 @@ SECURE_SSL_REDIRECT = True  # Enable redirect to HTTPS in production
 CSRF_TRUSTED_ORIGINS = [
     'https://www.technest.sbs',
     'https://technest.sbs',
-    'http://3.106.55.189',
+    'https://3.106.55.189',
 ]
 
 # For production
