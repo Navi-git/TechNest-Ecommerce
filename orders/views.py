@@ -371,44 +371,75 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import OrderMain, OrderSub
 
-
 @role_required('customer')
 def cancel_order(request, pk):
     if request.method != "POST":
         return HttpResponse("Method not allowed", status=405)
-    
+
     try:
-        order = OrderMain.objects.get(id=pk)
-        order_items = OrderSub.objects.filter(main_order=order, is_active=True)
-        
-        if not order.is_active:
-            messages.error(request, 'Order is already canceled.')
-            return redirect('user_panel:user_dash')
-        
-        # Increase the variant stock for each order item and mark the item inactive.
-        for order_item in order_items:
-            order_variant = order_item.variant
-            order_quantity = order_item.quantity
-            order_variant.stock += order_quantity
-            order_variant.save()
-            order_item.is_active = False
-            order_item.save()
-        
-        order.order_status = "Canceled"
-        order.is_active = False
-        order.save()
-
-        wallet = Wallet.objects.get(user=order.user)
-        wallet.credit(order.final_amount, order=order_item, description=f"Refund for cancelled order #{order.order_id}." )
-
-
+        order = OrderMain.objects.get(id=pk, user=request.user)
     except OrderMain.DoesNotExist:
         messages.error(request, 'Order does not exist.')
         return redirect('user_panel:user_dash')
-    
-    messages.success(request, "Order canceled successfully.")
-    return redirect('user_panel:user_dash')
 
+    # If the order was already fully canceled, exit early.
+    if not order.is_active:
+        messages.error(request, 'Order has already been canceled.')
+        return redirect('user_panel:user_dash')
+
+    # Fetch all sub-items (including those already refunded / is_active=False).
+    all_items = OrderSub.objects.filter(main_order=order)
+
+    # 1) Compute the original "cart total" at time of ordering.
+    #    This must include every OrderSub of that main_order, regardless of is_active.
+    original_cart_total = sum(item.final_total_cost() for item in all_items)
+
+    if original_cart_total <= 0:
+        # (This shouldn’t normally happen, but guard against division by zero.)
+        messages.error(request, 'Cannot compute refund: invalid order totals.')
+        return redirect('user_panel:user_dash')
+
+    # 2) Find which sub-items are still active (i.e. not individually canceled already).
+    remaining_items = all_items.filter(is_active=True)
+    if not remaining_items.exists():
+        # If every single item was already canceled individually, there is nothing left to refund here.
+        messages.error(request, 'All items in this order have already been refunded individually.')
+        return redirect('user_panel:user_dash')
+
+    # 3) Calculate "remaining_total" = sum(final_total_cost()) of only the still‑active items.
+    remaining_total = sum(item.final_total_cost() for item in remaining_items)
+
+    # 4) Compute how much we need to refund now:
+    #    ratio_of_remaining = remaining_total / original_cart_total
+    #    refund_amount = order.final_amount * ratio_of_remaining
+    refund_amount = (order.final_amount * remaining_total) / original_cart_total
+
+    # 5) Restock + mark each remaining item inactive:
+    for item in remaining_items:
+        variant = item.variant
+        variant.stock += item.quantity
+        variant.save()
+
+        item.is_active = False
+        item.save()
+
+    # 6) Mark the main order itself as canceled:
+    order.order_status = "Canceled"
+    order.is_active = False
+    order.save()
+
+    # 7) Credit exactly "refund_amount" to the wallet (same pattern you used before):
+    wallet, _ = Wallet.objects.get_or_create(user=order.user)
+    wallet.credit(
+        refund_amount,
+        order=item, 
+        description=f"Refund for fully canceled order #{order.order_id}"
+    )
+
+    messages.success(
+        request,
+        f"Order canceled successfully. ₹{refund_amount:.2f} has been refunded to your wallet.")
+    return redirect('user_panel:user_dash')
 
 
 @role_required('admin')
@@ -461,7 +492,7 @@ def return_order(request, pk):
         order_items = OrderSub.objects.filter(main_order=order)
         
         if not order.is_active:
-            messages.error(request, 'Order item is already returned.')
+            messages.error(request, 'Order is already returned.')
             return redirect('user_panel:user_dash')
         
         if order.order_status in ['Pending', 'Confirmed', 'Shipped']:
@@ -516,94 +547,142 @@ def admin_return_requests(request):
     return render(request, 'orders/return_request.html', context)
 
 
-from decimal import Decimal
-
-
 @role_required('admin')
 def admin_return_approval(request, pk):
     if request.method != "POST":
         return HttpResponse("Method not allowed", status=405)
-    
+
     return_request = get_object_or_404(ReturnRequest, id=pk)
     action = request.POST.get('action')
-    
+
     if action == 'Approve':
         return_request.status = "Approved"
         return_request.save()
-        
-        # If the return request is linked to a specific order item.
+
+        # ----- Individual‐item return -----
         if return_request.order_sub:
             item = return_request.order_sub
             main_order = item.main_order
+
+            # 1) Mark the item as returned/inactive
             item.is_active = False
             item.status = "Returned"
             item.save()
 
-            
-            # Only refund the cost of the returned item, not the whole order
-            product_amount = item.final_total_cost()
-            cart_total = sum(i.final_total_cost() for i in OrderSub.objects.filter(main_order_id = main_order.id)) 
-            product_percent = (product_amount/cart_total )*100 
-            refund_amount = main_order.final_amount * product_percent / 100
-            wallet = Wallet.objects.get(user=main_order.user)
-            wallet.credit(
-                refund_amount,
-                order=item, 
-                description=f"Refund for returned item #{item.id}"
-            )
+            # 2) Restock that variant
+            variant = item.variant
+            variant.stock += item.quantity
+            variant.save()
 
-            # If all items in the main order are now inactive, mark the entire order as returned.
+            # 3) Compute prorated refund for this single item,
+            #    exactly as you already had:
+            product_amount = item.final_total_cost()
+            cart_total = sum(
+                i.final_total_cost()
+                for i in OrderSub.objects.filter(main_order_id=main_order.id)
+            )
+            if cart_total > 0:
+                product_percent = (product_amount / cart_total) * 100
+                refund_amount = (main_order.final_amount * product_percent) / 100
+            else:
+                refund_amount = 0
+
+            # 4) Credit only that prorated amount
+            if main_order.payment_status:
+                wallet = Wallet.objects.get(user=main_order.user)
+                wallet.credit(
+                    refund_amount,
+                    order=item,
+                    description=f"Refund for returned item #{item.id}"
+                )
+
+            # 5) If no active sub‐items remain, mark the order itself as 'Returned'
             if not main_order.ordersub_set.filter(is_active=True).exists():
                 main_order.order_status = 'Returned'
                 main_order.save()
+
             messages.success(request, "Return request approved. Refund is credited to your wallet.")
             return redirect('order:return_requests')
+
+        # ----- Full‐order return (no order_sub attached) -----
         else:
-            # Process a full order return.
             order = return_request.order_main
-            active_items = order.ordersub_set.filter(is_active=True)
-            for item in active_items:
+
+            # 1) Collect all OrderSub for this order (active + already returned)
+            all_items = OrderSub.objects.filter(main_order=order)
+
+            # 2) Compute original cart total (sum of every line’s final_total_cost)
+            original_cart_total = sum(i.final_total_cost() for i in all_items)
+            if original_cart_total <= 0:
+                # Safety check—you shouldn’t normally hit this.
+                messages.error(request, "Invalid order totals; cannot compute refund.")
+                return redirect('order:return_requests')
+
+            # 3) Find only those sub‐items still active (i.e. not individually returned yet)
+            remaining_items = all_items.filter(is_active=True)
+            if not remaining_items.exists():
+                # If every item was already returned, there’s nothing left to refund here.
+                messages.error(request, "All items in this order have already been returned.")
+                return redirect('order:return_requests')
+
+            # 4) Compute remaining_total = sum of final_total_cost() for active items
+            remaining_total = sum(i.final_total_cost() for i in remaining_items)
+
+            # 5) Prorated refund: give the order the “rest” of its order_final_amount
+            refund_amount = (order.final_amount * remaining_total) / original_cart_total
+
+            # 6) Restock & mark inactive each remaining item
+            for item in remaining_items:
+                # a) Restock
+                var = item.variant
+                var.stock += item.quantity
+                var.save()
+
+                # b) Mark returned
                 item.is_active = False
                 item.status = "Returned"
                 item.save()
-            
+
+            # 7) Mark the main order itself as Returned
             order.order_status = 'Returned'
             order.is_active = False
             order.save()
 
-            if order.payment_status == True:
-
-                refund_amount = order.final_amount
+            # 8) Only credit the prorated refund if payment was already captured
+            if order.payment_status:
                 wallet = Wallet.objects.get(user=order.user)
                 wallet.credit(
                     refund_amount,
-                    order=None, 
-                    description=f"Refund for returned order #{order.order_id}")
-            
-                messages.success(request, "Return request approved. Refund is credited to your wallet.")
-                return redirect('order:return_requests')
+                    order=None,
+                    description=f"Refund for returned order #{order.order_id}"
+                )
+                messages.success(
+                    request,
+                    f"Return request approved. ₹{refund_amount:.2f} has been refunded to the wallet."
+                )
             else:
                 messages.success(request, "Return request approved.")
-                return redirect('order:return_requests')
-    
+            return redirect('order:return_requests')
+
     elif action == "Reject":
         return_request.status = "Rejected"
+        return_request.save()
+
+        # If it was an individual‐item request, also update that sub‐item’s status
         if return_request.order_sub:
             return_request.order_sub.status = "Return Rejected"
             return_request.order_sub.save()
-        return_request.save()
+
+        # Reset main order’s status back to “Delivered”
         return_request.order_main.order_status = 'Delivered'
         return_request.order_main.save()
 
         messages.success(request, "Return request rejected.")
         return redirect('order:return_requests')
-    
+
     else:
         messages.error(request, "Invalid action.")
         return redirect('order:return_requests')
-    
-
-
 
 
 @role_required('customer')
