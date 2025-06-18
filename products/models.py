@@ -23,16 +23,6 @@ class Brand(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-
-import base64
-from django.core.files.base import ContentFile
-
-
-def product_image_upload_path(instance, filename):
-    """Defines the dynamic upload path for product images."""
-    return f'product_images/{instance.product.slug}/{filename}'
-
-
 class Product(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, blank=True)
@@ -112,57 +102,38 @@ class ProductVariant(models.Model):
         super().save(*args, **kwargs)
 
 
-class ProductImage(models.Model):
+# products/models.py
+from django.db import models
+from .validators import validate_base64_image
 
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
+def product_image_upload_path(instance, filename):
+    return f'product_images/{instance.product.slug}/{filename}'
+
+# products/models.py
+from django.db import models
+from .validators import validate_base64_image
+
+def product_image_upload_path(instance, filename):
+    return f'product_images/{instance.product.slug}/{filename}'
+
+class ProductImage(models.Model):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to=product_image_upload_path)
 
     def __str__(self):
         return f"{self.product.name} - Image"
-    
-    @staticmethod
-    def validate_image(image_data, product):
-        """
-        Validates base64 image data for format (PNG/JPEG) and size (max 5MB).
-        Returns the decoded image file if valid, otherwise raises ValidationError.
-        """
-        try:
-            # Expecting data in the format: "data:image/jpeg;base64,/9j/..."
-            format, imgstr = image_data.split(';base64,')
-            ext = format.split('/')[-1].lower()
-            
-            # Validate format
-            if ext not in ['png', 'jpeg']:
-                raise ValidationError(f"Invalid image format: {ext}. Only PNG and JPEG are allowed.")
-
-            # Decode base64 data
-            image_bytes = base64.b64decode(imgstr)
-            
-            # Validate image type using imghdr
-            image_type = imghdr.what(None, h=image_bytes)
-            if image_type not in ['png', 'jpeg']:
-                raise ValidationError(f"Invalid image content: detected {image_type or 'unknown'}. Only PNG and JPEG are allowed.")
-
-            # Validate size (5MB = 5 * 1024 * 1024 bytes)
-            max_size = 5 * 1024 * 1024
-            if len(image_bytes) > max_size:
-                raise ValidationError(f"Image size exceeds 5MB (size: {len(image_bytes) / (1024 * 1024):.2f}MB).")
-
-            # Create ContentFile
-            image_file = ContentFile(image_bytes, name=f"{product.slug}.{ext}")
-            return image_file
-        except Exception as e:
-            raise ValidationError(f"Error processing image: {str(e)}")
 
     @staticmethod
     def save_cropped_image(image_data, product):
         """
-        Decodes a base64 image string and creates a ProductImage after validation.
-        Raises ValidationError if validation fails.
+        Validates and saves a base64 image string as a ProductImage.
+        Returns ProductImage instance if successful, raises ValidationError if invalid.
+        Assumes product is a saved instance.
         """
-        image_file = ProductImage.validate_image(image_data, product)
+        if not product.pk:
+            raise ValidationError("Product must be saved before saving images.")
+        image_file = validate_base64_image(image_data, product.slug)
         return ProductImage.objects.create(product=product, image=image_file)
-
 
 class Review(models.Model):
     product = models.ForeignKey(Product, related_name="reviews", on_delete=models.CASCADE)

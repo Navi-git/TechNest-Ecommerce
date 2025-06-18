@@ -79,6 +79,8 @@ INSTALLED_APPS = [
     'payments',
 ]
 
+
+
 MIDDLEWARE = [
 
     'allauth.account.middleware.AccountMiddleware',
@@ -263,3 +265,6 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
 # RAZORPAY settings
 RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")
+
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB

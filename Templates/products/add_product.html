@@ -29,12 +29,13 @@
                     <h4>Basic</h4>
                 </div>
                 {% if messages %}
-                    <div class="messages">
-                        {% for message in messages %}
-                            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% endif %}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
+                    <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
                     </div>
                 {% endif %}
                 <div class="card-body">
@@ -53,8 +54,6 @@
                             <textarea id="description" name="description" placeholder="Type here" class="form-control" rows="4" required>{{ form_data.description|default:'' }}</textarea>
                         </div>
 
-                        <!-- Removed product-level price, discount, and stock fields -->
-
                         <div class="mb-4">
                             <label for="highlights" class="form-label">Highlights</label>
                             <textarea id="highlights" name="highlights" placeholder="Type here (Click enter after each highlight for bullet points)" class="form-control" rows="4" required>{{ form_data.highlights|default:'' }}</textarea>
@@ -63,7 +62,6 @@
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if form_data.is_active %}checked{% endif %}>
                             <span class="form-check-label"> Is Active </span>
                         </label>
-                        <!-- Removed "Require Variants" checkbox as variants are now required -->
 
                         <div class="col-lg-12">
                             <div class="card mb-4">
@@ -124,7 +122,7 @@
                                             <div class="row g-3 mt-2">
                                             <div class="col-md-4">
                                                 <label class="form-label" for="variant_stock_{{ forloop.counter0 }}">Stock</label>
-                                                <input type="number" name="variant_stock[]" id="variant_stock_{{ forloop.counter0 }}" class="form-control" placeholder="items" value="{% if form_data.variant_stock %}{{ form_data.variant_stock|get_item:forloop.counter0|default:'0' }}{% endif %}" required />
+                                                <input type="number" name="variant_stock[]" id="variant_stock_{{ forloop.counter0 }}" class="form-control" placeholder="items" value="{% if form_data.variant_stock %}{{ form_data.variant_stock|get_item:forloop.counter0 }}{% endif %}" required />
                                             </div>
                                             <div class="col-md-4 d-flex align-items-end">
                                                 <div class="form-check">
@@ -180,7 +178,7 @@
                                     </div>
                                 </div>
                             </div>
-
+{% comment %} 
                             <div class="card mb-4">
                                 <div class="card-header">
                                     <h4>Media</h4>
@@ -192,6 +190,24 @@
                                         <input class="form-control" type="file" id="product_images" name="product_images[]" multiple accept="image/*" required><br><br>
                                         <div id="previewContainer"></div>
                                         <input type="hidden" name="cropped_images" id="croppedImagesInput">
+                                    </div>
+                                </div>
+                            </div> <!-- card end --> {% endcomment %}
+
+                            <!-- Media Section -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h4>Media</h4>
+                                    <p>Upload at least one PNG or JPEG image (max 5MB each).</p>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-upload">
+                                    <img src="{% static 'adminside/assets/imgs/theme/upload.svg' %}" alt="">
+                                    <!-- Image Upload and Cropping -->
+                                    <input class="form-control" type="file" id="product_images" name="product_images[]" multiple accept="image/png,image/jpeg" required>
+                                    <br><br>
+                                    <div id="previewContainer"></div>
+                                    <input type="hidden" name="cropped_images" id="croppedImagesInput" value="[]">
                                     </div>
                                 </div>
                             </div> <!-- card end -->
@@ -211,119 +227,72 @@
 <script>
     let cropperInstances = [];
     let croppedImages = [];
-    
+
     document.getElementById('product_images').addEventListener('change', function (event) {
-        const previewContainer = document.getElementById('previewContainer');
-        previewContainer.innerHTML = '';  // Clear previous previews
-        croppedImages = [];  // Reset the cropped images array
-        
-        Array.from(event.target.files).forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.maxWidth = '200px';
-                img.style.display = 'block';
-                img.style.marginBottom = '10px';
-                
-                const div = document.createElement('div');
-                div.style.marginBottom = '20px';
-                div.appendChild(img);
-                previewContainer.appendChild(div);
-                
-                const cropper = new Cropper(img, {
-                    aspectRatio: NaN,
-                    viewMode: 2,
-                    autoCropArea: 0.8,
-                    crop(event) {
-                        croppedImages[index] = {
-                            image: cropper.getCroppedCanvas().toDataURL()
-                        };
-                    }
-                });
-                cropperInstances[index] = cropper;
-            };
-            reader.readAsDataURL(file);
-        });
-    });
-    
-    document.getElementById('productForm').addEventListener('submit', function (event) {
-        document.getElementById('croppedImagesInput').value = JSON.stringify(croppedImages);
-    });
-</script>
-{% comment %} <script>
-    // Add new variant
-    document.getElementById('add-more-variant').addEventListener('click', function () {
-        const container = document.getElementById('variant-container');
+      const files = Array.from(event.target.files);
+      const previewContainer = document.getElementById('previewContainer');
+      previewContainer.innerHTML = ''; // Clear previous previews
+      cropperInstances.forEach(cropper => cropper.destroy()); // Destroy existing croppers
+      cropperInstances = [];
+      croppedImages = [];
 
-        const newVariant = document.createElement('div');
-        newVariant.className = 'variant-item border p-3 mb-3 rounded';
+      // Enforce 2-image limit
+      if (files.length + croppedImages.length > 6) {
+        alert('Maximum 6 images allowed.');
+        event.target.value = ''; // Clear input
+        return;
+      }
 
-        newVariant.innerHTML = `
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Variant Name</label>
-                    <input type="text" name="variant_name" class="form-control" placeholder="variant type" required />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Price</label>
-                    <input type="number" name="variant_price" class="form-control" placeholder="variant price" required />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Discount</label>
-                    <input type="number" step="0.5" name="variant_discount" class="form-control" placeholder="e.g., 10.00" value="0" />
-                </div>
-            </div>
-            <div class="row g-3 mt-2">
-                <div class="col-md-4">
-                    <label class="form-label">Stock</label>
-                    <input type="number" name="variant_stock" class="form-control" placeholder="items" required />
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="variant_default" value="on" />
-                        <label class="form-check-label">Set as Default</label>
-                    </div>
-                </div>
-                <div class="col-md-4 d-flex align-items-end justify-content-end">
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-variant">Remove</button>
-                </div>
-            </div>
-        `;
-
-        container.appendChild(newVariant);
-        updateRemoveButtons();
-    });
-
-    // Function to update visibility of remove buttons
-    function updateRemoveButtons() {
-        const variants = document.querySelectorAll('.variant-item');
-        const removeButtons = document.querySelectorAll('.remove-variant');
-
-        removeButtons.forEach(button => {
-            button.style.display = variants.length > 1 ? 'block' : 'none';
-        });
-    }
-
-    // Event delegation for remove buttons
-    document.getElementById('variant-container').addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-variant')) {
-            const variantItems = document.querySelectorAll('.variant-item');
-            if (variantItems.length > 1) {
-                e.target.closest('.variant-item').remove();
-                updateRemoveButtons();
-            } else {
-                alert('At least one variant is required.');
-            }
+      files.forEach((file, index) => {
+        // Client-side validation
+        if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+          alert(`Invalid format for ${file.name}. Only PNG and JPEG/JPG allowed.`);
+          return;
         }
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`File ${file.name} exceeds 5MB.`);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.maxWidth = '200px';
+          img.style.display = 'block';
+          img.style.marginBottom = '10px';
+
+          const div = document.createElement('div');
+          div.style.marginBottom = '20px';
+          div.appendChild(img);
+          previewContainer.appendChild(div);
+
+          const cropper = new Cropper(img, {
+            aspectRatio: NaN,
+            viewMode: 2,
+            autoCropArea: 0.8,
+            crop(event) {
+              croppedImages[index] = {
+                image: cropper.getCroppedCanvas().toDataURL('image/jpeg')
+              };
+            }
+          });
+          cropperInstances[index] = cropper;
+        };
+        reader.readAsDataURL(file);
+      });
     });
 
-    // Initialize remove button visibility
-    updateRemoveButtons();
-</script> {% endcomment %}
+    document.getElementById('productForm').addEventListener('submit', function (event) {
+      if (!croppedImages.length) {
+        alert('At least one image is required.');
+        event.preventDefault();
+        return;
+      }
+      document.getElementById('croppedImagesInput').value = JSON.stringify(croppedImages);
+    });
 
-<script>
-    // Add new variant
+    // Variant Handling
     document.getElementById('add-more-variant').addEventListener('click', function () {
       const container = document.getElementById('variant-container');
       const variantCount = container.querySelectorAll('.variant-item').length;
@@ -333,25 +302,25 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label" for="variant_name_${variantCount}">Variant Name</label>
-            <input type="text" name="variant_name[]" id="variant_name_${variantCount}" class="form-control" placeholder="variant type" required />
+            <input type="text" name="variant_name[]" id="variant_name_${variantCount}" class="form-control" placeholder="variant type" required>
           </div>
           <div class="col-md-4">
             <label class="form-label" for="variant_price_${variantCount}">Price</label>
-            <input type="number" step="0.01" name="variant_price[]" id="variant_price_${variantCount}" class="form-control" placeholder="variant price" required />
+            <input type="number" step="0.01" name="variant_price[]" id="variant_price_${variantCount}" class="form-control" placeholder="variant price" required>
           </div>
           <div class="col-md-4">
             <label class="form-label" for="variant_discount_${variantCount}">Discount</label>
-            <input type="number" step="0.01" name="variant_discount[]" id="variant_discount_${variantCount}" class="form-control" placeholder="e.g., 10.00" value="0" />
+            <input type="number" step="0.01" name="variant_discount[]" id="variant_discount_${variantCount}" class="form-control" placeholder="e.g., 10.00" value="0">
           </div>
         </div>
         <div class="row g-3 mt-2">
           <div class="col-md-4">
             <label class="form-label" for="variant_stock_${variantCount}">Stock</label>
-            <input type="number" name="variant_stock[]" id="variant_stock_${variantCount}" class="form-control" placeholder="items" value="0" required />
+            <input type="number" name="variant_stock[]" id="variant_stock_${variantCount}" class="form-control" placeholder="items" value="0" required>
           </div>
           <div class="col-md-4 d-flex align-items-end">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="variant_default[]" id="variant_default_${variantCount}" />
+              <input class="form-check-input" type="checkbox" name="variant_default[]" id="variant_default_${variantCount}">
               <label class="form-check-label" for="variant_default_${variantCount}">Set as Default</label>
             </div>
           </div>
@@ -364,16 +333,6 @@
       updateRemoveButtons();
     });
 
-    // Function to update visibility of remove buttons
-    function updateRemoveButtons() {
-      const variants = document.querySelectorAll('.variant-item');
-      const removeButtons = document.querySelectorAll('.remove-variant');
-      removeButtons.forEach(button => {
-        button.style.display = variants.length > 1 ? 'block' : 'none';
-      });
-    }
-
-    // Event delegation for remove buttons
     document.getElementById('variant-container').addEventListener('click', function (e) {
       if (e.target.classList.contains('remove-variant')) {
         const variantItems = document.querySelectorAll('.variant-item');
@@ -386,18 +345,20 @@
       }
     });
 
-    // Ensure only one default variant is selected
     document.getElementById('variant-container').addEventListener('change', function (e) {
       if (e.target.name === 'variant_default[]' && e.target.checked) {
         document.querySelectorAll('input[name="variant_default[]"]').forEach(checkbox => {
-          if (checkbox !== e.target) {
-            checkbox.checked = false;
-          }
+          if (checkbox !== e.target) checkbox.checked = false;
         });
       }
     });
 
-    // Initialize remove button visibility
+    function updateRemoveButtons() {
+      const variants = document.querySelectorAll('.variant-item');
+      document.querySelectorAll('.remove-variant').forEach(button => {
+        button.style.display = variants.length > 1 ? 'block' : 'none';
+      });
+    }
     updateRemoveButtons();
   </script>
 {% endblock %}
