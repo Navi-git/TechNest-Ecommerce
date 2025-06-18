@@ -10,6 +10,6 @@ urlpatterns = [
     path('',views.index,name='home'), # Home URL
     path('about/',views.about,name='about'), # About URL
     path('contact/',views.contact,name='contact'), # Contact URL
-    
+    path('search/', views.global_search, name='global_search'), 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

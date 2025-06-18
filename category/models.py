@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
-from .validators import validate_no_leading_trailing_spaces, validate_image_size, validate_category_name  # Import validators
+from .validators import validate_no_leading_trailing_spaces, validate_image_size, validate_category_name, validate_image_format # Import validators
 
 class Category(models.Model):
     name = models.CharField(
@@ -11,9 +11,9 @@ class Category(models.Model):
     description = models.TextField(blank=False, default="no description")
     image = models.ImageField(
         upload_to='category_images/',
-        blank=True,
-        null=True,
-        validators=[validate_image_size]  # Apply image size validation
+        blank=False,
+        null=False,
+        validators=[validate_image_size,validate_image_format]  # Apply image validation
     )
     slug = models.SlugField(max_length=255, unique=True)
     parent = models.ForeignKey(

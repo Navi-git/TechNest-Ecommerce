@@ -2,16 +2,14 @@
 {% load static %}
 
 {% block content %}
+<style>
+    /* Vertically align table cell content */
+    .table th, .table td {
+        vertical-align: middle;
+    }
+</style>
 <section class="content-main">
     <div class="content-header">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-success">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
         <div>
             <h2 class="content-title card-title">Categories </h2>
             <p>Add, edit or delete a category</p>
@@ -52,10 +50,11 @@
                                     <th>Description</th>
                                     <th>Slug</th>
                                     <th>Status</th>
+                                    <th>Image</th>
                                     <th>Created On</th>
                                     <th>Last Updated</th>
                                     <th class="text-center">Actions</th>
-                                    <th>Image</th>
+
                                 </tr>
                             </thead>
                             <tbody>
@@ -79,6 +78,13 @@
                                             <span class="badge bg-danger"> Inactive </span>
                                         {% endif %}
                                     </td>
+                                    <td>
+                                        {% if category.image %}
+                                            <img src="{{ category.image.url }}" alt="{{ category.name }}" style="max-width: 80px; height: auto;">
+                                        {% else %}
+                                            No image
+                                        {% endif %}
+                                    </td>
                                     <td>{{ category.created_at }}</td>
                                     <td>{{ category.updated_at }}</td>
                                     <td class="text-end">
@@ -96,7 +102,7 @@
                                             </div>
                                         </div> <!-- dropdown //end -->
                                     </td>
-                                    <td>{{ category.image }}</td>
+
                                 </tr>
                             
                                 {% endfor %}

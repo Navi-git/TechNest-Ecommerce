@@ -7,16 +7,9 @@
             <div class="col-md-6 offset-md-3">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title text-center" >Edit Category</h3>
+                        <h3 class="card-title text-center">Edit Category</h3>
                     </div>
                     <div class="card-body">
-                        {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                        {% endif %}
                         <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="mb-4">
@@ -25,7 +18,7 @@
                             </div>
                             <div class="mb-4">
                                 <label for="category_description" class="form-label">Description</label>
-                                <textarea name="description" class="form-control" id="category_description">{{ category.description }}</textarea>
+                                <textarea name="description" class="form-control" id="category_description" required>{{ category.description }}</textarea>
                             </div>
                             <div class="mb-4">
                                 <label for="category_slug" class="form-label">Slug</label>
@@ -42,7 +35,20 @@
                             </div>
                             <div class="mb-4">
                                 <label for="category_image" class="form-label">Image</label>
-                                <input type="file" class="form-control" id="category_image" name="image" />
+                                {% if category.image %}
+                                    <div class="mb-2">
+                                        <p>Current Image: <span>{{ category.image.name }}</span></p>
+                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" style="max-width: 200px; height: auto;">
+                                    </div>
+                                    <p class="text-muted">To replace the image, upload a new one below.</p>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="delete_image" name="delete_image">
+                                        <label class="form-check-label" for="delete_image">Delete current image (requires uploading a new image)</label>
+                                    </div>
+                                {% else %}
+                                    <p>No image uploaded yet.</p>
+                                {% endif %}
+                                <input type="file" class="form-control" id="category_image" name="image" accept="image/jpeg,image/png" />
                             </div>
                             <div class="d-grid">
                                 <button class="btn btn-primary" type="submit">Update Category</button>

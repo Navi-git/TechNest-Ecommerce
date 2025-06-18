@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.utils.text import slugify
 from .models import Category
 from django.core.exceptions import ValidationError
-from .validators import validate_image_size, validate_no_leading_trailing_spaces, validate_category_name
+from .validators import validate_image_size, validate_no_leading_trailing_spaces, validate_category_name, validate_image_format
 from userauths.decorators import role_required
 
 
@@ -34,6 +34,7 @@ def add_category(request):
     if request.method == "POST":
         name = request.POST.get("name", "")
         description = request.POST.get("description", "")
+        slug = request.POST.get("slug", "")
         image = request.FILES.get("image")
         parent_id = request.POST.get('parent')
 
@@ -53,11 +54,10 @@ def add_category(request):
                 errors.extend(e.messages)
 
         # Check if category name already exists
-        if Category.objects.filter(name=name).exists():
+        if Category.objects.filter(name__iexact=name).exists():
             errors.append("Category name already exists.")
 
         # Description Validation
-        # Validate description for leading/trailing spaces before stripping
         if description:
             try:
                 validate_no_leading_trailing_spaces(description)
@@ -71,10 +71,14 @@ def add_category(request):
         elif description and len(description) < 10:
             errors.append("Description must be at least 10 characters long.")
 
+        if Category.objects.filter(slug__iexact=slug).exists():
+            errors.append("Slug name already exists.")
+
         # Image Validation
         if image:
             try:
                 validate_image_size(image)
+                validate_image_format(image)
             except ValidationError as e:
                 errors.append(e.message)
 
@@ -89,7 +93,7 @@ def add_category(request):
         # Save Category
         Category.objects.create(
             name=name,
-            slug=slugify(name),
+            slug=slug,
             description=description,
             parent=parent,
             image=image
@@ -102,23 +106,33 @@ def add_category(request):
 
 @role_required(['admin'])
 def edit_category(request, category_id):
-    from .models import Category
-
     category = get_object_or_404(Category, id=category_id)
 
     if request.method == "POST":
-        name = request.POST.get("name", "")
+        name = request.POST.get("name", "").strip()
         description = request.POST.get("description", "")
+        slug = request.POST.get("slug", "")
         image = request.FILES.get("image")
         parent_id = request.POST.get("parent")
+        delete_image = request.POST.get("delete_image")  # Check for delete image
 
         errors = []
 
-        # Validate name for leading/trailing spaces before stripping
-        try:
-            validate_no_leading_trailing_spaces(name)
-        except ValidationError as e:
-            errors.extend(e.messages)
+        # Name validation
+        if not name:
+            errors.append("Category name is required.")
+        elif len(name) > 100:
+            errors.append("Category name should not exceed 100 characters.")
+        else:
+            try:
+                validate_no_leading_trailing_spaces(name)
+                validate_category_name(name)
+            except ValidationError as e:
+                errors.extend(e.messages)
+
+        # Unique category name validation (excluding current category)
+        if Category.objects.filter(name__iexact=name).exclude(id=category.id).exists():
+            errors.append("Category name already exists.")
 
         # Validate description for leading/trailing spaces before stripping
         if description:
@@ -128,32 +142,29 @@ def edit_category(request, category_id):
                 errors.extend(e.messages)
 
         # Strip spaces after validation
-        name = name.strip()
         description = description.strip()
 
-        # Name validation
-        if not name:
-            errors.append("Category name is required.")
-        elif len(name) > 100:
-            errors.append("Category name should not exceed 100 characters.")
-        else:
-            try:
-                validate_category_name(name)
-            except ValidationError as e:
-                errors.extend(e.messages)
-
-        # Unique category name validation (excluding current category)
-        if Category.objects.filter(name=name).exclude(id=category.id).exists():
-            errors.append("Category name already exists.")
-
         # Description validation
-        if description and len(description) < 10:
+        if not description:
+            errors.append("Description is required")
+        elif len(description) < 10:
             errors.append("Description must be at least 10 characters long.")
 
+        if Category.objects.filter(slug__iexact=slug).exclude(id=category.id).exists():
+            errors.append("Slug name already exists.")
+
         # Image validation
-        if image:
+        if delete_image and not image:
+            errors.append("You must upload a new image if deleting the current one.")
+        elif not image and not category.image and not delete_image:
+            errors.append("Exactly one image is required for the category.")
+        elif image:
             try:
                 validate_image_size(image)
+                validate_image_format(image)
+                # Check for multiple files (for robustness)
+                if len(request.FILES.getlist('image')) > 1:
+                    errors.append("Only one image can be uploaded.")
             except ValidationError as e:
                 errors.append(e.message)
 
@@ -161,14 +172,19 @@ def edit_category(request, category_id):
         if errors:
             for error in errors:
                 messages.error(request, error)
-            return render(request, "category/edit_category.html", {"category": category})
+            return render(request, "category/edit_category.html", {
+                "category": category,
+                "categories": Category.objects.filter(parent=None).exclude(id=category.id)
+            })
 
         # Update category
         category.name = name
-        category.slug = slugify(name)
         category.description = description
+        category.slug = slug
         if image:
             category.image = image  # Update image if a new one is uploaded
+        elif delete_image and image:
+            category.image = image  # Replace image if delete is checked and new image is provided
         category.parent = Category.objects.get(id=parent_id) if parent_id else None
 
         category.save()
@@ -176,8 +192,11 @@ def edit_category(request, category_id):
         messages.success(request, "Category updated successfully!")
         return redirect("category:admin_category_list")
 
-    categories = Category.objects.filter(parent=None).exclude(id=category.id)  # Prevent selecting itself as parent
-    return render(request, "category/edit_category.html", {"category": category, "categories": categories})
+    categories = Category.objects.filter(parent=None).exclude(id=category.id)
+    return render(request, "category/edit_category.html", {
+        "category": category,
+        "categories": categories
+    })
 
 @role_required(['admin'])
 def toggle_category_status(request, category_id):

@@ -4,9 +4,10 @@ from userauths.models import User
 from django.utils.text import slugify
 from django.db.models import Avg, Count
 from PIL import Image
+import imghdr
 import os
 from django.conf import settings
-
+from django.core.exceptions import ValidationError
 
 class Brand(models.Model):
     name = models.CharField(max_length=100)
@@ -120,20 +121,47 @@ class ProductImage(models.Model):
         return f"{self.product.name} - Image"
     
     @staticmethod
-    def save_cropped_image(image_data, product):
+    def validate_image(image_data, product):
         """
-        Decodes a base64 image string and creates a ProductImage.
-        This method is called from your views when processing the form.
+        Validates base64 image data for format (PNG/JPEG) and size (max 5MB).
+        Returns the decoded image file if valid, otherwise raises ValidationError.
         """
         try:
-            # Expecting data in the format: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
+            # Expecting data in the format: "data:image/jpeg;base64,/9j/..."
             format, imgstr = image_data.split(';base64,')
-            ext = format.split('/')[-1]
-            image_file = ContentFile(base64.b64decode(imgstr), name=f"{product.slug}.{ext}")
-            return ProductImage.objects.create(product=product, image=image_file)
+            ext = format.split('/')[-1].lower()
+            
+            # Validate format
+            if ext not in ['png', 'jpeg']:
+                raise ValidationError(f"Invalid image format: {ext}. Only PNG and JPEG are allowed.")
+
+            # Decode base64 data
+            image_bytes = base64.b64decode(imgstr)
+            
+            # Validate image type using imghdr
+            image_type = imghdr.what(None, h=image_bytes)
+            if image_type not in ['png', 'jpeg']:
+                raise ValidationError(f"Invalid image content: detected {image_type or 'unknown'}. Only PNG and JPEG are allowed.")
+
+            # Validate size (5MB = 5 * 1024 * 1024 bytes)
+            max_size = 5 * 1024 * 1024
+            if len(image_bytes) > max_size:
+                raise ValidationError(f"Image size exceeds 5MB (size: {len(image_bytes) / (1024 * 1024):.2f}MB).")
+
+            # Create ContentFile
+            image_file = ContentFile(image_bytes, name=f"{product.slug}.{ext}")
+            return image_file
         except Exception as e:
-            print("Error saving cropped image:", e)
-            return None
+            raise ValidationError(f"Error processing image: {str(e)}")
+
+    @staticmethod
+    def save_cropped_image(image_data, product):
+        """
+        Decodes a base64 image string and creates a ProductImage after validation.
+        Raises ValidationError if validation fails.
+        """
+        image_file = ProductImage.validate_image(image_data, product)
+        return ProductImage.objects.create(product=product, image=image_file)
 
 
 class Review(models.Model):

@@ -41,7 +41,7 @@
         </div>
         <nav>
             <ul class="menu-aside">
-                <li class="menu-item active">
+                <li class="menu-item">
                     <a class="menu-link" href="{% url "userauths:admin_dashboard" %}"> <i class="icon material-icons md-home"></i>
                         <span class="text">Dashboard</span>
                     </a>
@@ -94,16 +94,18 @@
                     <a class="menu-link" href="{% url 'order:return_requests' %}"><i class="icon material-icons md-replay"></i>
                         <span class="text">Returns</span>
                     </a>
-                    
                 </li>
-            </ul>
-            <hr>
-            <ul class="menu-item">
-                {% comment %} <li class="menu-item">
+                <li class="menu-item">
                     <a class="menu-link" href="#"> <i class="icon material-icons md-local_offer"></i>
-                        <span class="text"> Starter page </span>
+                        <span class="text"> Offers </span>
                     </a>
-                </li> {% endcomment %}
+                </li>
+                <div class="dropdown-divider"></div>
+                <li class="menu-item">
+                    <a class="menu-link" hhref="{% url "userauths:admin_logout" %}"> <i class="icon material-icons md-exit_to_app"></i>
+                        <span class="text"> Logout </span>
+                    </a>
+                </li>
             </ul>
             <br>
             <br>
@@ -115,12 +117,12 @@
             <div class="col-nav ms-auto d-flex align-items-center">
                 <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i class="material-icons md-apps"></i> </button>
                 <ul class="nav">
-                    <li class="nav-item">
+                    {% comment %} <li class="nav-item">
                         <a class="nav-link btn-icon" href="#">
                             <i class="material-icons md-notifications animation-shake"></i>
                             <span class="badge rounded-pill">3</span>
                         </a>
-                    </li>
+                    </li> {% endcomment %}
                     <li class="nav-item">
                         <a class="nav-link btn-icon darkmode" href="#"> <i class="material-icons md-nights_stay"></i> </a>
                     </li>
@@ -129,28 +131,15 @@
                     </li>
     
                     <li class="dropdown nav-item">
-                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="{% static 'adminside/assets/imgs/people/avatar2.jpg' %}" alt="User"></a>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
-                            {% comment %} <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a> {% endcomment %}
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-danger" href="{% url "userauths:admin_logout" %}"><i class="material-icons md-exit_to_app"></i>Logout</a>
-                        </div>
+                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="{% static 'userside/assets/imgs/theme/favicon.svg' %}" alt="User"></a>
+                        {% comment %} <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
+                            <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a>
+                        </div> {% endcomment %}
                     </li>
                 </ul>
             </div>
         </header>
         <section class="content-main">
-            <!--
-            <div class="content-header">
-                <div>
-                    <h2 class="content-title card-title">Dashboard </h2>
-                    <p>Whole data about your business here</p>
-                </div>
-                <div>
-                    <a href="#" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create report</a>
-                </div>
-            </div>
-            -->
             {% block content %}
             {# This is where the content of the child template will be displayed #}
             {% endblock %}

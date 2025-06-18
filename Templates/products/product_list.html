@@ -2,6 +2,12 @@
 {% load static %}
 
 {% block content %}
+<style>
+    /* Vertically align table cell content */
+    .table th, .table td {
+        vertical-align: middle;
+    }
+</style>
 <section class="content-main">
     <div class="content-header">
 
@@ -54,7 +60,7 @@
                         <td>
                             <div>
                                 {% for image in product.images.all %}
-                                    <img src="{{ image.image.url }}" width="100" alt="Product Image">
+                                    <img src="{{ image.image.url }}" width="80px" height="auto" alt="Product Image">
                                 {% endfor %}
                             </div>
                         </td>

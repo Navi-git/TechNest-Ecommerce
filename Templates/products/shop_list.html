@@ -3,7 +3,7 @@
 {% load thumbnail %}
 
 {% block content %}
-<div class="container my-5">
+<div class="container my-5"> 
     <h1>Shop</h1>
 </div>
 
@@ -77,14 +77,18 @@
                                         <a href="#">{{ product.category.name }}</a>
                                     </div>
                                     <h2><a href="{% url 'products:product_detail' product.id %}">{{ product.name }}</a></h2>
-                                    <div class="rating">
-                                        <span>⭐ {{ product.average_rating|floatformat:1 }}/5</span> 
-                                        <span>({{ product.review_count }} reviews)</span>
-                                    </div>
+                                    {% if product.review_count > 0 %}
+                                        <div class="rating">
+                                            <span>⭐ {{ product.average_rating|floatformat:1 }}/5</span> 
+                                            <span>({{ product.review_count }} reviews)</span>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">No reviews</p>
+                                    {% endif %}
                                     <div class="product-price">
                                         {% with default_variant=product.get_default_variant %}
                                             {% if default_variant %}
-                                                {% if default_variant.discount > 0 %}
+                                                {% if default_variant.discount > 0 and default_variant.final_price != default_variant.price %}
                                                     <span class="text-brand">₹{{ default_variant.final_price|floatformat:2 }}</span>
                                                     <br>
                                                     <small class="text-danger">

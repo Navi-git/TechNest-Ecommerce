@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+import os
 
 # Ensure name contains only letters, numbers, and spaces
 validate_category_name = RegexValidator(
@@ -17,3 +18,10 @@ def validate_image_size(image):
     max_size = 2 * 1024 * 1024  # 2MB
     if image.size > max_size:
         raise ValidationError("Image file size should not exceed 2MB.")
+
+
+def validate_image_format(value):
+    valid_extensions = ['.jpg', '.jpeg', '.png']
+    ext = os.path.splitext(value.name)[1].lower()
+    if ext not in valid_extensions:
+        raise ValidationError("Only JPG, JPEG, and PNG formats are allowed.")

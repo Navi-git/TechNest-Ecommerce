@@ -9,7 +9,7 @@ from .models import Product, ProductImage, Brand, ProductVariant ,Review
 from category.models import Category
 from userauths.decorators import role_required
 from django.db.models import Avg
-
+from django.core.exceptions import ValidationError
 
 # ---------------------------
 # Admin: Product Management
@@ -47,19 +47,44 @@ def add_product(request):
         # Validate required product fields
         if not name:
             messages.error(request, "Product name cannot be empty.")
-            return redirect('products:add_product')
+            return render(request, 'products/add_product.html', {
+                'categories': Category.objects.all(),
+                'brands': Brand.objects.all(),
+                'form_data': request.POST,
+            })
 
+
+        if Product.objects.filter(slug=slug).exists():
+            messages.error(request, "Slug name already exists.")
+            return render(request, 'products/add_product.html', {
+                'categories': Category.objects.all(),
+                'brands': Brand.objects.all(),
+                'form_data': request.POST,
+            })
+        
         if not Category.objects.filter(id=category_id).exists():
             messages.error(request, "Selected category is invalid.")
-            return redirect('products:add_product')
+            return render(request, 'products/add_product.html', {
+                'categories': Category.objects.all(),
+                'brands': Brand.objects.all(),
+                'form_data': request.POST,
+            })
 
         if not Brand.objects.filter(id=brand_id).exists():
             messages.error(request, "Selected brand is invalid.")
-            return redirect('products:add_product')
+            return render(request, 'products/add_product.html', {
+                'categories': Category.objects.all(),
+                'brands': Brand.objects.all(),
+                'form_data': request.POST,
+            })
 
         if not description:
             messages.error(request, "Product description cannot be empty.")
-            return redirect('products:add_product')
+            return render(request, 'products/add_product.html', {
+                'categories': Category.objects.all(),
+                'brands': Brand.objects.all(),
+                'form_data': request.POST,
+            })
 
         # Create the product (without price/discount/stock)
         product = Product.objects.create(
@@ -82,68 +107,149 @@ def add_product(request):
         if not variant_names or not any(name.strip() for name in variant_names):
             messages.error(request, "At least one variant must be provided.")
             product.delete()  # Clean up the created product
-            return redirect('products:add_product')
+            return render(request, 'products/add_product.html', {
+                'categories': Category.objects.all(),
+                'brands': Brand.objects.all(),
+                'form_data': request.POST,
+            })
+
+        # Track variant names to ensure uniqueness
+        seen_variant_names = set()
+        valid_variants = False
 
         for idx, v_name in enumerate(variant_names):
-            if v_name.strip():
-                try:
-                    v_price = float(variant_prices[idx])
-                    v_discount = float(variant_discounts[idx])
-                    v_stock = int(variant_stocks[idx])
-                except (ValueError, IndexError):
-                    # Skip variant if conversion fails
-                    continue
+            v_name = v_name.strip()
+            if not v_name:
+                messages.error(request, "Variant name cannot be empty.")
+                continue
 
-                # Validate variant values
-                if v_price <= 0:
-                    messages.error(request, "Variant price must be a positive number.")
-                    continue
-                if v_discount > v_price:
-                    messages.error(request, "Variant discount cannot exceed its price.")
-                    continue
-                if v_stock < 0:
-                    messages.error(request, "Variant stock cannot be negative.")
-                    continue
+            # Check for duplicate variant names within the form submission
+            if v_name.lower() in seen_variant_names:
+                messages.error(request, f"Variant name '{v_name}' is duplicated in the form.")
+                continue
+            seen_variant_names.add(v_name.lower())
 
+            try:
+                v_price = float(variant_prices[idx])
+                v_discount = float(variant_discounts[idx]) if variant_discounts[idx].strip() else 0.0
+                v_stock = int(variant_stocks[idx]) if variant_stocks[idx].strip() else 0
+            except (ValueError, IndexError):
+                messages.error(request, f"Invalid values for price, discount, or stock for variant '{v_name}'.")
+                continue
+
+            # Validate variant values
+            if v_price <= 0:
+                messages.error(request, f"Price for variant '{v_name}' must be a positive number.")
+                continue
+            if v_discount >= v_price:
+                messages.error(request, f"Discount for variant '{v_name}' cannot exceed or equal its price.")
+                continue
+            if v_stock < 0:
+                messages.error(request, f"Stock for variant '{v_name}' cannot be negative.")
+                continue
+            if v_discount < 0:
+                messages.error(request, f"Discount for variant '{v_name}' must be positive.")
+                continue
+
+            is_default = False
+            try:
+                if variant_defaults[idx] == 'on':
+                    is_default = True
+            except IndexError:
                 is_default = False
-                try:
-                    if variant_defaults[idx] == 'on':
-                        is_default = True
-                except IndexError:
-                    is_default = False
 
-                ProductVariant.objects.create(
-                    product=product,
-                    variant_name=v_name,
-                    price=v_price,
-                    discount=v_discount,
-                    stock=v_stock,
-                    is_default=is_default
-                )
+            # Create the variant
+            ProductVariant.objects.create(
+                product=product,
+                variant_name=v_name,
+                price=v_price,
+                discount=v_discount,
+                stock=v_stock,
+                is_default=is_default
+            )
+            valid_variants = True
+
+        if not valid_variants:
+            messages.error(request, "No valid variants were provided.")
+            product.delete()  # Clean up the created product
+            return render(request, 'products/add_product.html', {
+                'categories': Category.objects.all(),
+                'brands': Brand.objects.all(),
+                'form_data': request.POST,
+            })
+
+        # Process and save cropped images
+        # cropped_images_json = request.POST.get('cropped_images', '[]')
+        # try:
+        #     cropped_images = json.loads(cropped_images_json)
+        #     for image_dict in cropped_images:
+        #         image_base64 = image_dict.get('image')
+        #         if image_base64:
+        #             ProductImage.save_cropped_image(image_base64, product)
+        # except json.JSONDecodeError:
+        #     messages.error(request, "Invalid cropped images data.")
+        #     product.delete()  # Clean up the created product
+        #     return render(request, 'products/add_product.html', {
+        #         'categories': Category.objects.all(),
+        #         'brands': Brand.objects.all(),
+        #         'form_data': request.POST,
+        #     })
+
+        # messages.success(request, "Product and variants added successfully!")
+        # return redirect('products:admin_product_list')
 
         # Process and save cropped images
         cropped_images_json = request.POST.get('cropped_images', '[]')
         try:
             cropped_images = json.loads(cropped_images_json)
+            if not cropped_images:
+                messages.error(request, "At least one image is required.")
+                product.delete()
+                return render(request, 'products/add_product.html', {
+                    'categories': Category.objects.all(),
+                    'brands': Brand.objects.all(),
+                    'form_data': request.POST,
+                })
+
+            valid_images = False
             for image_dict in cropped_images:
                 image_base64 = image_dict.get('image')
                 if image_base64:
-                    ProductImage.save_cropped_image(image_base64, product)
+                    try:
+                        ProductImage.save_cropped_image(image_base64, product)
+                        valid_images = True
+                    except ValidationError as e:
+                        messages.error(request, f"Image validation failed: {str(e)}")
+                        continue
+
+            if not valid_images:
+                messages.error(request, "No valid images were provided. At least one valid PNG or JPEG image under 5MB is required.")
+                product.delete()
+                return render(request, 'products/add_product.html', {
+                    'categories': Category.objects.all(),
+                    'brands': Brand.objects.all(),
+                    'form_data': request.POST,
+                })
+
         except json.JSONDecodeError:
             messages.error(request, "Invalid cropped images data.")
-            return redirect('products:add_product')
+            product.delete()
+            return render(request, 'products/add_product.html', {
+                'categories': Category.objects.all(),
+                'brands': Brand.objects.all(),
+                'form_data': request.POST,
+            })
 
-        messages.success(request, "Product added successfully!")
+        messages.success(request, "Product and variants added successfully!")
         return redirect('products:admin_product_list')
-
     else:
         categories = Category.objects.all()
         brands = Brand.objects.all()
         return render(request, 'products/add_product.html', {
             'categories': categories,
-            'brands': brands
+            'brands': brands,
+            'form_data': {},  # Empty form data for GET request
         })
-
 
 
 
@@ -241,7 +347,7 @@ from django.db.models import Q
 def product_list_admin(request):
     search_query = request.GET.get('search', '')
     
-    products = Product.objects.all()
+    products = Product.objects.all().order_by('-updated_at')
 
     if search_query:
         products = products.filter(
@@ -284,17 +390,6 @@ def delete_image(request, pk):
     
     return redirect(request.META.get('HTTP_REFERER', 'products:edit_product', args=[product.id]))
 
-# @role_required(allowed_roles=['admin'])
-# def delete_image(request, pk):
-#     image = get_object_or_404(ProductImage, pk=pk)
-#     product = image.product
-#     try:
-#         image.delete()
-#         messages.success(request, 'Image deleted successfully.')
-#     except Exception as e:
-#         messages.error(request, f'Error deleting image: {str(e)}')
-    
-#     return redirect(request.META.get('HTTP_REFERER', 'products:edit_product', args=[product.id]))
 
 
 @role_required(allowed_roles=['admin'])
@@ -329,6 +424,55 @@ def restore_product(request, pk):
 # Variant Management Views
 # ---------------------------
 
+# @role_required(allowed_roles=['admin'])
+# def add_variant(request, product_id):
+#     product = get_object_or_404(Product, id=product_id)
+#     if request.method == "POST":
+#         variant_name = request.POST.get("variant_name", "").strip()
+#         price = request.POST.get("price")
+#         discount = request.POST.get("discount", "0")
+#         stock = request.POST.get("stock")
+#         is_default = request.POST.get("is_default") == "on"
+
+#         if not variant_name:
+#             messages.error(request, "Variant name cannot be empty.")
+#             return redirect("products:edit_product", product_id=product.id)
+#         if ProductVariant.objects.filter(variant_name__iexact=variant_name).exits():
+#             messages.error(request, "Variant name already exist")
+#             return redirect("products:edit_product", product_id=product.id)
+
+#         try:
+#             price = float(price)
+#             discount = float(discount)
+#             stock = int(stock)
+#             if price <= 0:
+#                 messages.error(request, "Price must be valid number greater than 0.")
+#                 return redirect("products:edit_product", product_id=product.id)
+#             if discount >= price:
+#                 messages.error(request, "Discount cannot exceed price.")
+#                 return redirect("products:edit_product", product_id=product.id)
+#             if discount <0 :
+#                 messages.error(request, "Discount should be positive.")
+#                 return redirect("products:edit_product", product_id=product.id)
+#             if stock < 0:
+#                 messages.error(request, "Stock cannot be negative.")
+#                 return redirect("products:edit_product", product_id=product.id)
+#         except ValueError:
+#             messages.error(request, "Invalid values for price, discount, or stock.")
+#             return redirect("products:edit_product", product_id=product.id)
+
+#         ProductVariant.objects.create(
+#             product=product,
+#             variant_name=variant_name,
+#             price=price,
+#             discount=discount,
+#             stock=stock,
+#             is_default=is_default
+#         )
+#         messages.success(request, "Variant added successfully.")
+#         return redirect("products:edit_product", product_id=product.id)
+
+#     return render(request, "products/add_variant.html", {"product": product})
 
 @role_required(allowed_roles=['admin'])
 def add_variant(request, product_id):
@@ -340,9 +484,23 @@ def add_variant(request, product_id):
         stock = request.POST.get("stock")
         is_default = request.POST.get("is_default") == "on"
 
+        # Prepare form data to repopulate the template on error
+        form_data = {
+            "variant_name": variant_name,
+            "price": price,
+            "discount": discount,
+            "stock": stock,
+            "is_default": is_default,
+        }
+
+        # Validation checks
         if not variant_name:
             messages.error(request, "Variant name cannot be empty.")
-            return redirect("products:edit_product", product_id=product.id)
+            return render(request, "products/edit_product.html", {"product": product, "add_variant_form_data": form_data})
+
+        if ProductVariant.objects.filter(product__id=product.id, variant_name__iexact=variant_name).exists():
+            messages.error(request, "Variant name already exists for this product.")
+            return render(request, "products/edit_product.html", {"product": product, "add_variant_form_data": form_data})
 
         try:
             price = float(price)
@@ -350,17 +508,21 @@ def add_variant(request, product_id):
             stock = int(stock)
             if price <= 0:
                 messages.error(request, "Price must be positive.")
-                return redirect("products:edit_product", product_id=product.id)
-            if discount > price:
-                messages.error(request, "Discount cannot exceed price.")
-                return redirect("products:edit_product", product_id=product.id)
+                return render(request, "products/edit_product.html", {"product": product, "add_variant_form_data": form_data})
+            if discount >= price:
+                messages.error(request, "Discount cannot exceed or equal to price.")
+                return render(request, "products/edit_product.html", {"product": product, "add_variant_form_data": form_data})
             if stock < 0:
                 messages.error(request, "Stock cannot be negative.")
-                return redirect("products:edit_product", product_id=product.id)
+                return render(request, "products/edit_product.html", {"product": product, "add_variant_form_data": form_data})
+            if discount < 0:
+                messages.error(request, "Discount must be positive.")
+                return render(request, "products/edit_product.html", {"product": product, "add_variant_form_data": form_data})
         except ValueError:
             messages.error(request, "Invalid values for price, discount, or stock.")
-            return redirect("products:edit_product", product_id=product.id)
+            return render(request, "products/edit_product.html", {"product": product, "add_variant_form_data": form_data})
 
+        # If all validations pass, create the variant
         ProductVariant.objects.create(
             product=product,
             variant_name=variant_name,
@@ -372,43 +534,84 @@ def add_variant(request, product_id):
         messages.success(request, "Variant added successfully.")
         return redirect("products:edit_product", product_id=product.id)
 
-    return render(request, "products/add_variant.html", {"product": product})
+    # For GET request, provide empty form data
+    form_data = {
+        "variant_name": "",
+        "price": "",
+        "discount": "0",
+        "stock": "",
+        "is_default": False,
+    }
+    return render(request, "products/edit_product.html", {"product": product, "add_variant_form_data": form_data})
 
 
 @role_required(allowed_roles=['admin'])
 def edit_variant(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)
     if request.method == "POST":
-        variant.variant_name = request.POST.get("variant_name", "").strip()
+        variant_name = request.POST.get("variant_name", "").strip()
         price = request.POST.get("price")
         discount = request.POST.get("discount", "0")
         stock = request.POST.get("stock")
-        variant.is_default = request.POST.get("is_default") == "on"
+        is_default = request.POST.get("is_default") == "on"
+
+        # Prepare form data to repopulate the template on error
+        form_data = {
+            "variant_name": variant_name,
+            "price": price,
+            "discount": discount,
+            "stock": stock,
+            "is_default": is_default,
+        }
+
+        # Validation checks
+        if not variant_name:
+            messages.error(request, "Variant name cannot be empty.")
+            return render(request, "products/edit_variant.html", {"variant": variant, "form_data": form_data})
+
+        if ProductVariant.objects.filter(product__id=variant.product.id, variant_name__iexact=variant_name).exclude(id=variant.id).exists():
+            messages.error(request, "Variant name already exists for this product.")
+            return render(request, "products/edit_variant.html", {"variant": variant, "form_data": form_data})
+
         try:
             price = float(price)
             discount = float(discount)
             stock = int(stock)
             if price <= 0:
                 messages.error(request, "Price must be positive.")
-                return redirect("products:edit_variant", variant_id=variant.id)
-            if discount > price:
-                messages.error(request, "Discount cannot exceed price.")
-                return redirect("products:edit_variant", variant_id=variant.id)
+                return render(request, "products/edit_variant.html", {"variant": variant, "form_data": form_data})
+            if discount >= price:
+                messages.error(request, "Discount cannot exceed or equal to price.")
+                return render(request, "products/edit_variant.html", {"variant": variant, "form_data": form_data})
             if stock < 0:
                 messages.error(request, "Stock cannot be negative.")
-                return redirect("products:edit_variant", variant_id=variant.id)
+                return render(request, "products/edit_variant.html", {"variant": variant, "form_data": form_data})
+            if discount < 0:
+                messages.error(request, "Discount must be positive.")
+                return render(request, "products/edit_variant.html", {"variant": variant, "form_data": form_data})
         except ValueError:
             messages.error(request, "Invalid values for price, discount, or stock.")
-            return redirect("products:edit_variant", variant_id=variant.id)
-        
+            return render(request, "products/edit_variant.html", {"variant": variant, "form_data": form_data})
+
+        # If all validations pass, save the variant
+        variant.variant_name = variant_name
         variant.price = price
         variant.discount = discount
         variant.stock = stock
+        variant.is_default = is_default
         variant.save()
         messages.success(request, "Variant updated successfully.")
         return redirect("products:edit_product", product_id=variant.product.id)
-    
-    return render(request, "products/edit_variant.html", {"variant": variant})
+
+    # For GET request, populate form with existing variant data
+    form_data = {
+        "variant_name": variant.variant_name,
+        "price": variant.price,
+        "discount": variant.discount,
+        "stock": variant.stock,
+        "is_default": variant.is_default,
+    }
+    return render(request, "products/edit_variant.html", {"variant": variant, "form_data": form_data})
 
 
 @role_required(allowed_roles=['admin'])
@@ -467,7 +670,7 @@ def shop_list(request):
     
     categories = Category.objects.filter(is_active=True)
     products = Product.objects.prefetch_related("images", "variants").filter(is_active=True, category__is_active=True)
-
+    reviews = Review.objects.all()
     # Filtering by category
     category_id = request.GET.get('category')
     if category_id:
@@ -488,7 +691,7 @@ def shop_list(request):
     elif sort_by == 'price_high_low':
         products = products.order_by('-variants__price')
     elif sort_by == 'rating':
-        products = products.order_by('-rating')
+        products = products.order_by('reviews__rating')
     else:
         products = products.order_by('id')
 

@@ -36,3 +36,30 @@ def contact(request):
             messages.error(request, "Please fill all required fields.")
 
     return render(request, 'home/contact.html')
+
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.urls import reverse
+from products.models import Product
+from category.models import Category
+
+def global_search(request):
+    query = request.GET.get('q', '').strip()
+
+    if not query:
+        messages.warning(request, "Please enter a search term.")
+        return redirect(request.META.get("HTTP_REFERER", "/"))
+
+    # Try matching a category by name
+    category = Category.objects.filter(name__icontains=query, is_active=True).first()
+    if category:
+        # Redirect to shop with category filter
+        return redirect(reverse('products:shop_list') + f'?category={category.id}')
+
+    product = Product.objects.filter(name__icontains=query, is_active=True).first()
+    if product:
+        return redirect('products:product_detail', product_id=product.id)
+    
+    messages.info(request, "No matching products or categories found.")
+    return redirect(request.META.get("HTTP_REFERER", "/"))
