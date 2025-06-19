@@ -103,7 +103,7 @@ def paymenthandler(request):
                     user=order.user,
                     main_order=order,
                     variant=variant,
-                    price=variant.discount,
+                    price=variant.final_price,
                     quantity=it['quantity'],
                 )
                 variant.stock -= it['quantity']

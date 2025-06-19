@@ -1,0 +1,26 @@
+{% extends 'partials/admin_base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2>Category Offers</h2>
+    <a href="{% url 'category:add_category_offer' %}" class="btn btn-primary">Add New Offer</a>
+  </div>
+  <div class="row mt-3">
+    {% for offer in offers %}
+      <div class="col-md-4">
+        <div class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">{{ offer.category.name }}</h5>
+            <p class="card-text">Discount: {{ offer.discount_percentage }}%</p>
+            <p>From: {{ offer.start_date }} To: {{ offer.end_date }}</p>
+            <a href="{% url 'category:edit_category_offer' offer.id %}" class="btn btn-sm btn-warning">Edit</a>
+            <a href="{% url 'category:delete_category_offer' offer.id %}" class="btn btn-sm btn-danger">Delete</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p>No category offers added yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

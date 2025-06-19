@@ -1,119 +1,331 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f3f3f3;
-            margin: 0;
-            padding: 20px;
-        }
-        .cart-container {
-            display: flex;
-            max-width: 1200px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-        }
-        .cart-items {
-            flex: 3;
-            padding-right: 20px;
-        }
-        .cart-summary {
-            flex: 1;
-            background: #fff;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .cart-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 15px;
-        }
-        .cart-item img {
-            width: 100px;
-            height: auto;
-            margin-right: 15px;
-        }
-        .cart-item-info {
-            flex: 1;
-        }
-        .cart-item-title {
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .cart-item-price {
-            color: #b12704;
-            font-size: 16px;
-            margin-top: 5px;
-        }
-        .cart-actions {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-        .cart-actions input {
-            width: 40px;
-            text-align: center;
-            margin: 0 10px;
-        }
-        .checkout-btn {
-            display: block;
-            width: 100%;
-            background-color: #ff9900;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-    </style>
-</head>
-<body>
-    <div class="cart-container">
-        <div class="cart-items">
-            <h2>Shopping Cart</h2>
-            <div class="cart-item">
-                <img src="product1.jpg" alt="Product Image">
-                <div class="cart-item-info">
-                    <div class="cart-item-title">ShineXPro Microfiber Cloth</div>
-                    <div class="cart-item-price">₹499.00</div>
-                    <div class="cart-actions">
-                        <button>-</button>
-                        <input type="text" value="1">
-                        <button>+</button>
-                        <a href="#">Delete</a>
-                    </div>
-                </div>
-            </div>
-            <div class="cart-item">
-                <img src="product2.jpg" alt="Product Image">
-                <div class="cart-item-info">
-                    <div class="cart-item-title">Softspun Microfiber Cloth</div>
-                    <div class="cart-item-price">₹299.00</div>
-                    <div class="cart-actions">
-                        <button>-</button>
-                        <input type="text" value="2">
-                        <button>+</button>
-                        <a href="#">Delete</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="cart-summary">
-            <h3>Order Summary</h3>
-            <p>Subtotal (3 items): <strong>₹1,097.00</strong></p>
-            <button class="checkout-btn">Proceed to Buy</button>
-        </div>
-    </div>
-</body>
-</html>
+class Offer(models.Model):
+    OFFER_TYPES = [
+        ('PERCENTAGE', 'Percentage Discount'),
+        ('FIXED', 'Fixed Amount Discount'),
+    ]
+
+    OFFER_SCOPES = [
+        ('PRODUCT', 'Product Specific'),
+        ('CATEGORY', 'Category Wide'),
+    ]
+
+    # Common fields for all offers
+    name = models.CharField(max_length=255, help_text="Name of the offer")
+    offer_type = models.CharField(
+        max_length=20, 
+        choices=OFFER_TYPES, 
+        help_text="Type of discount (Percentage or Fixed)"
+    )
+    discount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        validators=[MinValueValidator(0)],
+        help_text="Discount amount or percentage"
+    )
+    start_date = models.DateTimeField(help_text="Start date of the offer")
+    end_date = models.DateTimeField(help_text="End date of the offer")
+    status = models.BooleanField(default=True, help_text="Active or Inactive offer")
+
+    # Scope-specific fields
+    scope = models.CharField(
+        max_length=20, 
+        choices=OFFER_SCOPES, 
+        help_text="Scope of the offer (Product or Category)"
+    )
+    
+    # Optional foreign keys based on scope
+    product = models.ForeignKey(
+        'Product', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        help_text="Product for product-specific offer"
+    )
+    category = models.ForeignKey(
+        'Category', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        help_text="Category for category-wide offer"
+    )
+
+    def clean(self):
+        """
+        Validate offer creation:
+        - Ensure only one of product or category is set based on scope
+        - Validate date range
+        - Validate discount value
+        """
+        from django.core.exceptions import ValidationError
+        
+        # Validate scope-specific constraints
+        if self.scope == 'PRODUCT' and not self.product:
+            raise ValidationError("Product must be specified for product-specific offer")
+        
+        if self.scope == 'CATEGORY' and not self.category:
+            raise ValidationError("Category must be specified for category-wide offer")
+        
+        # Ensure start date is before end date
+        if self.start_date and self.end_date and self.start_date >= self.end_date:
+            raise ValidationError("Start date must be before end date")
+        
+        # Validate percentage discount
+        if self.offer_type == 'PERCENTAGE' and self.discount > 100:
+            raise ValidationError("Percentage discount cannot exceed 100%")
+
+    def is_currently_active(self):
+        """
+        Check if the offer is currently valid and active
+        """
+        now = timezone.now()
+        return (
+            self.status and 
+            self.start_date <= now <= self.end_date
+        )
+
+    def str(self):
+        scope_details = self.product.name if self.scope == 'PRODUCT' else self.category.name
+        return f"{self.name} - {self.get_scope_display()}: {scope_details}"
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    (models.Q(scope='PRODUCT') & models.Q(productisnull=False) & models.Q(categoryisnull=True)) |
+                    (models.Q(scope='CATEGORY') & models.Q(categoryisnull=False) & models.Q(productisnull=True))
+                ),
+                name='valid_offer_scope'
+            )
+        ]
+        ordering = ['-start_date']  
+
+    def get_total_offer(self, product):
+        """
+        Calculate the total offer for a given product by comparing product-specific FED
+        and category-wide offers, returning the maximum discount if both exist, or the single
+        available discount if only one applies.
+        
+        Args:
+            product (Product): The product to check offers for.
+        
+
+            Returns:
+            Decimal: The maximum applicable discount, or 0 if no offers apply.
+        """
+        from django.utils import timezone
+        
+        now = timezone.now()
+        
+        # Get product-specific offer
+        product_offer = Offer.objects.filter(
+            scope='PRODUCT',
+            product=product,
+            status=True,
+            start_date__lte=now,
+            end_date__gte=now
+        ).first()
+        
+        # Get category-wide offer
+        category_offer = Offer.objects.filter(
+            scope='CATEGORY',
+            category=product.category,
+            status=True,
+            start_date__lte=now,
+            end_date__gte=now
+        ).first()
+        
+        # Calculate discounts
+        product_discount = Decimal('0.00')
+        if product_offer:
+            if product_offer.offer_type == 'PERCENTAGE':
+                product_discount = (product_offer.discount / Decimal('100.0')) * product.variants.first().price
+            else:  # FIXED
+                product_discount = product_offer.discount
+        
+        category_discount = Decimal('0.00')
+        if category_offer:
+            if category_offer.offer_type == 'PERCENTAGE':
+                category_discount = (category_offer.discount / Decimal('100.0')) * product.variants.first().price
+            else:  # FIXED
+                category_discount = category_offer.discount
+        
+        # Return the maximum discount, or 0 if no offers apply
+        return max(product_discount, category_discount) if (product_offer or category_offer) else Decimal('0.00')
+    
+class Coupon(models.Model):
+    DISCOUNT_TYPES = [
+        ('PERCENTAGE', 'Percentage Discount'),
+        ('FIXED', 'Fixed Amount Discount'),
+    ]
+    
+    code = models.CharField(max_length=50, unique=True, help_text="Unique coupon code")
+    description = models.TextField(blank=True, null=True, help_text="Description of the coupon")
+    discount_type = models.CharField(
+        max_length=20, 
+        choices=DISCOUNT_TYPES, 
+        default='PERCENTAGE',
+        help_text="Type of discount (Percentage or Fixed amount)"
+    )
+    discount_value = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        help_text="Value of the discount (percentage or fixed amount)"
+    )
+    min_purchase_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0.00,
+        validators=[MinValueValidator(0)],
+        help_text="Minimum purchase amount required to use this coupon"
+    )
+    max_discount_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text="Maximum discount amount (for percentage discounts)"
+    )
+    valid_from = models.DateTimeField(help_text="Start date and time of coupon validity")
+    valid_until = models.DateTimeField(help_text="End date and time of coupon validity")
+    usage_limit = models.PositiveIntegerField(
+        null=True, 
+        blank=True,
+        help_text="Total number of times this coupon can be used (null for unlimited)"
+    )
+    usage_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of times this coupon has been used"
+    )
+    per_user_limit = models.PositiveIntegerField(
+        default=1,
+        help_text="Number of times a single user can use this coupon"
+    )
+    is_active = models.BooleanField(default=True, help_text="Whether this coupon is currently active")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def str(self):
+        return f"{self.code} - {self.get_discount_type_display()} ({self.discount_value})"
+
+
+
+
+
+        def clean(self):
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        
+        # Validate date range
+        if self.valid_from and self.valid_until and self.valid_from >= self.valid_until:
+            raise ValidationError("Start date must be before end date")
+        
+        # Validate percentage discount
+        if self.discount_type == 'PERCENTAGE' and self.discount_value > 100:
+            raise ValidationError("Percentage discount cannot exceed 100%")
+            
+        # Validate max_discount_amount for percentage discounts
+        if self.discount_type == 'PERCENTAGE' and not self.max_discount_amount:
+            raise ValidationError("Maximum discount amount is required for percentage discounts")
+    
+    def is_valid(self, user=None, cart_total=None):
+        """
+        Check if the coupon is currently valid and can be applied
+        
+        Args:
+            user (CustomUser, optional): The user applying the coupon
+            cart_total (Decimal, optional): The total cart amount
+            
+        Returns:
+            tuple: (is_valid (bool), error_message (str or None))
+        """
+        now = timezone.now()
+        
+        # Check if coupon is active
+        if not self.is_active:
+            return False, "This coupon is inactive"
+            
+        # Check date validity
+        if now < self.valid_from:
+            return False, "This coupon is not yet valid"
+            
+        if now > self.valid_until:
+            return False, "This coupon has expired"
+            
+        # Check usage limits
+        if self.usage_limit is not None and self.usage_count >= self.usage_limit:
+            return False, "This coupon has reached its usage limit"
+            
+        # Check user-specific validity if user is provided
+        if user:
+            # Check per-user limit
+            user_usage_count = CouponUsage.objects.filter(
+                coupon=self,
+                user=user
+            ).count()
+            
+            if user_usage_count >= self.per_user_limit:
+                return False, "You have already used this coupon the maximum number of times"
+        
+        # Check minimum purchase amount if cart_total is provided
+        if cart_total is not None and cart_total < self.min_purchase_amount:
+            return False, f"Minimum purchase of ₹{self.min_purchase_amount} required to use this coupon"
+            
+        return True, None
+    
+    def calculate_discount(self, amount):
+        """
+        Calculate the discount amount for a given purchase amount
+        
+        Args:
+            amount (Decimal): The amount to apply the discount to
+            
+        Returns:
+            Decimal: The discount amount
+        """
+        if self.discount_type == 'PERCENTAGE':
+            discount = (self.discount_value / 100) * amount
+            # Apply max discount cap if set
+            if self.max_discount_amount and discount > self.max_discount_amount:
+                return self.max_discount_amount
+            return discount
+        else:  # FIXED
+            return min(self.discount_value, amount)  # Don't exceed the cart total
+            
+    class Meta:
+        ordering = ['-created_at']
+
+
+class CouponUsage(models.Model):
+    """Track individual usage of coupons by users"""
+    coupon = models.ForeignKey(
+        Coupon, 
+        on_delete=models.CASCADE,
+        related_name='usages'
+    )
+    user = models.ForeignKey(
+        'CustomUser',
+        on_delete=models.CASCADE,
+        related_name='coupon_usages'
+    )
+    order = models.ForeignKey(
+        'Order',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='coupon_usages'
+    )
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    discount_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Amount discounted by this coupon"
+    )
+    
+    def str(self):
+        return f"{self.coupon.code} used by {self.user.username} on {self.used_at}"
+    
+    class Meta:
+        unique_together = ('coupon', 'order')
+        ordering = ['-used_at']

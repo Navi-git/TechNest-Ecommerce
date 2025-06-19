@@ -1,10 +1,16 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from category.models import Category
+from django.shortcuts import render, redirect
+from category.models import Category, CategoryOffer
+from django.utils import timezone
 
 # Create your views here.
 def index(request):
     categories = Category.objects.filter(is_active=True).order_by('name')
-    return render(request, 'home/home.html', {'categories': categories})
+    category_offers = CategoryOffer.objects.filter(
+        start_date__lte=timezone.now().date(),
+        end_date__gte=timezone.now().date()
+    )
+    return render(request, 'home/home.html', {'categories': categories,
+        'category_offers': category_offers})
 
 
 def about(request):

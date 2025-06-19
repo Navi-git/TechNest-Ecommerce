@@ -56,7 +56,7 @@ class OrderSub(models.Model):
 
     def total_cost(self):
 
-        return self.quantity * self.variant.discount
+        return self.quantity * self.variant.final_price
 
     def final_total_cost(self):
         return self.quantity * self.price

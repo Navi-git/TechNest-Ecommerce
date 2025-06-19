@@ -33,3 +33,18 @@ class Category(models.Model):
 
     class Meta:
         verbose_name_plural = 'Categories'
+
+
+class CategoryOffer(models.Model):
+    category = models.OneToOneField(Category, on_delete=models.CASCADE, related_name="offer")
+    discount_percentage = models.PositiveIntegerField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    def is_active(self):
+        from django.utils import timezone
+        today = timezone.now().date()
+        return self.start_date <= today <= self.end_date
+
+    def __str__(self):
+        return f"{self.category.name} - {self.discount_percentage}%"

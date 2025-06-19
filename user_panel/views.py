@@ -62,33 +62,31 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 @login_required
-@role_required(['customer'])  # Adjust parameters as needed to enforce your role permissions
+@role_required(['customer'])
 def edit_details(request, pk):
     user_obj = get_object_or_404(User, id=pk)
-    
+
     if request.method == "GET":
         return render(request, 'user_panel/user_dash.html', {'user': user_obj})
-    
+
     elif request.method == "POST":
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
         phone_number = request.POST.get('phone_number', '').strip()
-        
+
         if not first_name or not last_name:
             messages.error(request, "First name and last name cannot be empty.")
-            return render(request, 'user_panel/user_dash.html', {'user': user_obj})
-        
-        if len(phone_number) != 10 or not phone_number.isdigit():
+        elif not phone_number.isdigit() or len(phone_number) != 10:
             messages.error(request, "Phone number must be 10 digits and contain only numbers.")
-            return render(request, 'user_panel/user_dash.html', {'user': user_obj})
-        
-        user_obj.first_name = first_name
-        user_obj.last_name = last_name
-        user_obj.phone_number = phone_number
-        user_obj.save()
-        
-        messages.success(request, 'Details Edited Successfully')
-        return redirect('user_panel:user_dash')
+        else:
+            user_obj.first_name = first_name
+            user_obj.last_name = last_name
+            user_obj.phone_number = phone_number
+            user_obj.save()
+            messages.success(request, 'Details Edited Successfully')
+            return redirect('user_panel:user_dash')
+
+        return render(request, 'user_panel/user_dash.html', {'user': user_obj})
 
 
 # userauths/views.py
@@ -137,45 +135,38 @@ def remove_profile_picture(request):
 
 
 
-@role_required(['customer'])
-def change_password(request):
-    if request.method == "GET":
-        # Render the change password template (or a section within user_dash.html)
-        return render(request, 'user_panel/user_dash.html')
-    
-    elif request.method == "POST":
-        user = request.user
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.contrib.auth import update_session_auth_hash
 
-        # Retrieve the form data from the POST request.
+@role_required(['customer'])
+@login_required
+def change_password(request):
+    if request.method == 'POST':
         old_password = request.POST.get('old_password')
         new_password = request.POST.get('new_password')
         confirm_new_password = request.POST.get('confirm_new_password')
 
-        # Check if the old password provided is correct.
-        if user.check_password(old_password):
-            # Check if the new passwords match and are different from the old password.
-            if new_password == confirm_new_password and new_password != old_password:
-                # Set and save the new password.
-                user.set_password(new_password)
-                user.save()
-                messages.success(request, 'Password Changed Successfully')
-                
-                # Reauthenticate the user with the new password.
-                user = authenticate(username=user.email, password=new_password)
-                if user is not None:
-                    login(request, user)
-                else:
-                    messages.error(request, 'Authentication failed. Please login again.')
-                
-                # Redirect back to the change password page (or another appropriate page).
-                return redirect('user_panel:change_password')
-            else:
-                messages.error(request, 'New Passwords Do Not Match or Same as Old')
-        else:
-            messages.error(request, 'Old Password Incorrect')
+        if new_password != confirm_new_password:
+            messages.error(request, "New passwords do not match.")
+            return redirect('user_panel:user_dash')
 
-        # If errors occur, re-render the same page with error messages.
-        return render(request, 'user_panel/user_dash.html')
+        if not request.user.check_password(old_password):
+            messages.error(request, "Old password is incorrect.")
+            return redirect('user_panel:user_dash')
+
+        try:
+            validate_password(new_password, user=request.user)
+        except ValidationError as e:
+            for msg in e.messages:
+                messages.error(request, msg)
+            return redirect('user_panel:user_dash')
+
+        request.user.set_password(new_password)
+        request.user.save()
+        update_session_auth_hash(request, request.user)
+        messages.success(request, "Password changed successfully.")
+        return redirect('user_panel:user_dash')
 
 
 

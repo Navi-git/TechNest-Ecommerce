@@ -218,3 +218,61 @@ def delete_category(request, category_id):
 
     # Redirect back to the admin categories page
     return redirect('category:admin_category_list')
+
+#----------------------------------------------------------------------
+#   CATEGORY OFFER ADMIN SIDE
+#----------------------------------------------------------------------
+
+# offers/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import CategoryOffer, Category
+from django.contrib import messages
+from django.utils import timezone
+
+@role_required(['admin'])
+def list_category_offers(request):
+    offers = CategoryOffer.objects.all()
+    return render(request, 'category/offer_list.html', {'offers': offers})
+
+@role_required(['admin'])
+def add_category_offer(request):
+    categories = Category.objects.exclude(offer__isnull=False)
+    if request.method == "POST":
+        category_id = request.POST.get('category')
+        discount = request.POST.get('discount')
+        start = request.POST.get('start_date')
+        end = request.POST.get('end_date')
+
+        if not all([category_id, discount, start, end]):
+            messages.error(request, "All fields are required.")
+            return redirect('category:add_category_offer')
+
+        CategoryOffer.objects.create(
+            category_id=category_id,
+            discount_percentage=discount,
+            start_date=start,
+            end_date=end
+        )
+        messages.success(request, "Category offer added successfully.")
+        return redirect('category:list_category_offers')
+
+    return render(request, 'category/offer_add.html', {'categories': categories})
+
+@role_required(['admin'])
+def edit_category_offer(request, offer_id):
+    offer = get_object_or_404(CategoryOffer, id=offer_id)
+    if request.method == "POST":
+        offer.discount_percentage = request.POST.get('discount')
+        offer.start_date = request.POST.get('start_date')
+        offer.end_date = request.POST.get('end_date')
+        offer.save()
+        messages.success(request, "Offer updated successfully.")
+        return redirect('category:list_category_offers')
+    return render(request, 'category/offer_edit.html', {'offer': offer})
+
+@role_required(['admin'])
+def delete_category_offer(request, offer_id):
+    offer = get_object_or_404(CategoryOffer, id=offer_id)
+    offer.delete()
+    messages.success(request, "Offer deleted.")
+    return redirect('category:list_category_offers')

@@ -56,7 +56,7 @@
 
                                     <td class="price" data-title="Price">
                                         <span class="text-brand">₹{{ item.get_unit_price|floatformat:2 }}</span>
-                                        {% if item.variant.discount > 0 %}
+                                        {% if item.variant.final_price > 0 %}
                                             <br>
                                             <small class="text-danger">
                                                 <del>₹{{ item.variant.price|floatformat:2 }}</del>

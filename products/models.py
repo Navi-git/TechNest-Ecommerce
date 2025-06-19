@@ -3,10 +3,8 @@ from category.models import Category
 from userauths.models import User
 from django.utils.text import slugify
 from django.db.models import Avg, Count
-from PIL import Image
-import imghdr
-import os
-from django.conf import settings
+from decimal import Decimal
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 class Brand(models.Model):
@@ -50,13 +48,12 @@ class Product(models.Model):
 
     def get_final_price(self):
         """
-        Returns the final price based on the default variant.
-        If a discount is set (greater than 0), that value is used.
+        Returns the final price of the default variant (considering category & variant discounts).
         """
         default_variant = self.get_default_variant()
         if default_variant:
-            return default_variant.discount if default_variant.discount > 0 else default_variant.price
-        return 0
+            return default_variant.final_price
+        return Decimal('0.00')
 
     def average_rating(self):
         return self.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0.0
@@ -79,17 +76,53 @@ class ProductVariant(models.Model):
     @property
     def final_price(self):
         """
-        If discount is set (greater than 0), it is treated as the final selling price.
-        Otherwise, the original price is used.
+        Returns the better of:
+        - Variant-level discount
+        - Category-level offer (if active)
         """
-        return self.discount if self.discount > 0 else self.price
+        base_price = self.price
+
+        # Variant discount price
+        variant_price = self.discount if self.discount > 0 else base_price
+
+        # Category offer price
+        category_offer = getattr(self.product.category, 'offer', None)
+        if category_offer and category_offer.start_date <= timezone.now().date() <= category_offer.end_date:
+            category_discount = Decimal(category_offer.discount_percentage)
+            category_price = base_price * (Decimal('1.0') - (category_discount / Decimal('100')))
+            return min(variant_price, category_price)
+
+        return variant_price
     
     @property
     def discount_percentage(self):
-        """Calculate the discount percentage"""
-        if self.discount > 0 and self.price > 0:
-            return round(((self.price - self.discount) / self.price) * 100, 2)
-        return 0
+        """
+        Returns the actual discount percentage based on the best of:
+        - variant discount
+        - category offer (if active)
+        """
+        from decimal import Decimal
+        from django.utils import timezone
+
+        if self.price <= 0:
+            return 0
+
+        base_price = self.price
+
+        # Variant discounted price
+        variant_price = self.discount if self.discount > 0 else base_price
+
+        # Category offer price
+        category_offer = getattr(self.product.category, 'offer', None)
+        if category_offer and category_offer.start_date <= timezone.now().date() <= category_offer.end_date:
+            category_price = base_price * (Decimal('1.0') - (Decimal(category_offer.discount_percentage) / Decimal('100')))
+            best_price = min(variant_price, category_price)
+        else:
+            best_price = variant_price
+
+        discount_amount = base_price - best_price
+        return round((discount_amount / base_price) * 100, 2)
+
 
     def save(self, *args, **kwargs):
         # If this variant is marked as default, unset the default flag on all other variants for this product.

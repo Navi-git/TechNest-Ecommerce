@@ -8,8 +8,8 @@ import json
 from django.views.decorators.http import require_POST
 from user_panel.models import UserAddress  
 from coupons.utils import get_available_coupons_for_user
-
 from userauths.decorators import role_required
+
 def get_user_cart(request):
     """Retrieve or create a cart for an authenticated user."""
     if request.user.is_authenticated:
@@ -60,36 +60,6 @@ def cart_detail(request):
         'total': total,
     }
     return render(request, 'cart/cart_detail.html', context)
-
-
-
-
-# @require_POST
-# def add_to_cart(request, product_id):
-#     """Add a product variant to the cart."""
-#     if not request.user.is_authenticated:
-#         return redirect('account_login')  # Redirect to login if user is not authenticated
-
-#     variant_id = request.POST.get('variant_id')
-#     quantity = int(request.POST.get('quantity', 1))
-
-#     variant = get_object_or_404(ProductVariant, id=variant_id)
-#     product = variant.product
-
-#     cart = get_user_cart(request)
-#     if not cart:
-#         return redirect('account_login')
-
-#     cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product, variant=variant)
-
-#     if not created:
-#         cart_item.quantity += quantity
-#     else:
-#         cart_item.quantity = quantity
-
-    
-#     cart_item.save()
-#     return redirect('cart:cart_detail')
 
 
 from django.contrib import messages

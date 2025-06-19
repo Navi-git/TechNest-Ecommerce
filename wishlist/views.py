@@ -1,15 +1,16 @@
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render,redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from .models import Wishlist
 from products.models import *
 from cart.models import *
 from userauths.decorators import role_required
 
-@role_required(['customer'])
-@require_POST
+
 def add_to_wishlist(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'login_required': True})
+    
     variant_id = request.POST.get('variant_id')
     if not variant_id:
         return JsonResponse({'success': False, 'message': 'No product variant specified.'})
@@ -102,8 +103,6 @@ def wishlist_to_cart(request):
 
 
 
-
-@role_required(['customer'])
 def wishlist_view(request):
     """
     Render the wishlist with all wishlist items.

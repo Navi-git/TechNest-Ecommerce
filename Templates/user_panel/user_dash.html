@@ -305,7 +305,7 @@
                                                                                             Name: {{ item.main_order.address.name }}<br>
                                                                                             House Name: {{ item.main_order.address.house_name }}<br>
                                                                                             Size: {{ item.variant.variant_name }}<br>
-                                                                                            Price: ₹{{ item.variant.discount }}<br>
+                                                                                            Price: ₹{{ item.variant.final_price|floatformat:2 }}<br>
                                                                                         </p>
                                                                                     </div>
                                                                                     
@@ -456,15 +456,15 @@
                     <div class="row">
                         <div class="form-group col-md-6">
                             <label>First Name<span class="required">*</span></label>
-                            <input required class="form-control square" name="first_name" value="{{ user.first_name }}" type="text">
+                            <input required class="form-control square" name="first_name" value="{{ user.first_name }}" type="text" pattern="[A-Za-z]{2,50}" title="Only letters, min 2 characters">
                         </div>
                         <div class="form-group col-md-6">
                             <label>Last Name<span class="required">*</span></label>
-                            <input required class="form-control square" value="{{ user.last_name }}" name="last_name">
+                            <input required class="form-control square" name="last_name" value="{{ user.last_name }}" type="text" pattern="[A-Za-z]{2,50}" title="Only letters, min 2 characters">
                         </div>
                         <div class="form-group col-md-6">
                             <label>Phone Number<span class="required">*</span></label>
-                            <input required class="form-control square" value="{{ user.phone_number }}" name="phone_number">
+                            <input required class="form-control square" name="phone_number" value="{{ user.phone_number }}" pattern="\d{10}" title="Enter 10-digit number">
                         </div>
                         <div class="col-md-12 mt-2">
                             <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
@@ -500,6 +500,11 @@
                                 <div class="form-group col-md-6">
                                     <label> New Password <span class="required">*</span></label>
                                     <input required class="form-control square" name="new_password" type="Password">
+                                        <ul class="text-muted" style="font-size: 13px;" id="password-requirements">
+                                            <li id="length" class="invalid">At least 8 characters required.</li>
+                                            <li id="number" class="invalid">at least contains one number and a special character.</li>
+                                            <li id="letter" class="invalid">at least contains one letter and shouldn't be similar to name of user. </li>
+                                        </ul>
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label> Confirm New Password <span class="required">*</span></label>
@@ -638,6 +643,22 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+<script>
+function checkPasswordStrength() {
+    const pwd = document.getElementById("new_password").value;
+    const length = document.getElementById("length");
+    const number = document.getElementById("number");
+    const letter = document.getElementById("letter");
+
+    length.className = pwd.length >= 8 ? "valid" : "invalid";
+    number.className = /\d/.test(pwd) ? "valid" : "invalid";
+    letter.className = /[A-Za-z]/.test(pwd) ? "valid" : "invalid";
+}
+</script>
+<style>
+.valid { color: green; }
+.invalid { color: red; }
+</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

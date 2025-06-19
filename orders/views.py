@@ -188,7 +188,7 @@ def order_verification_view(request):
                     user=current_user,
                     main_order=order_main,
                     variant=item.variant,
-                    price=item.variant.discount,
+                    price=item.variant.final_price,
                     quantity=item.quantity,
                 )
                 item.variant.stock -= item.quantity
@@ -228,7 +228,7 @@ def order_verification_view(request):
                     user=current_user,
                     main_order=order_main,
                     variant=item.variant,
-                    price=item.variant.discount,
+                    price=item.variant.final_price,
                     quantity=item.quantity,
                 )
                 item.variant.stock -= item.quantity

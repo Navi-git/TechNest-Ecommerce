@@ -187,6 +187,33 @@
                 </div>
             </div>
         </section>
+        
+        <div class="container mt-4">
+            <h3 class="section-title mb-20"><span>Category</span> Offers</h3>
+        <div id="categoryOfferCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+            {% for offer in category_offers %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="d-flex justify-content-center">
+                <div class="card text-center bg-success-subtle shadow-sm border-0" style="width: 54rem;">
+                    <div class="card-body p-4">
+                    <h5 class="card-title text-success-emphasis">Up to {{ offer.discount_percentage }}% off</h5>
+                    <p class="card-text">On {{ offer.category.name }} products</p>
+                    <a href="{% url "products:shop_list" %}" class="btn btn-success">Shop Now</a>
+                    </div>
+                </div>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#categoryOfferCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#categoryOfferCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+            </button>
+        </div>
+        </div>
 
         <section class="popular-categories section-padding mt-15 mb-20">
             <div class="container wow fadeIn animated">

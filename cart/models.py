@@ -2,6 +2,9 @@ from django.db import models
 from django.conf import settings
 from products.models import Product, ProductVariant
 from decimal import Decimal
+from category.utils import get_best_discounted_price
+    
+
 
 
 class Cart(models.Model):
@@ -48,14 +51,7 @@ class CartItem(models.Model):
         return f"{self.quantity} x {self.variant}"
     
     def get_unit_price(self):
-        """
-        Return the final unit price for the variant.
-        If a discount is applied (discount > 0), use the final_price,
-        otherwise, use the regular price.
-        """
-        if self.variant.discount > 0:
-            return self.variant.final_price
-        return self.variant.price
+        return get_best_discounted_price(self.variant)
 
     def total_cost(self):
         """Return total cost for this cart item (price * quantity)."""
@@ -63,4 +59,4 @@ class CartItem(models.Model):
 
     def get_total_price(self):
         """Return total price for this cart item (price * quantity)."""
-        return self.variant.discount * self.quantity if self.variant.discount > 0 else self.variant.price * self.quantity
+        return self.get_unit_price() * self.quantity

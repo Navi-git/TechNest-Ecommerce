@@ -66,8 +66,8 @@ def create_coupon(request):
             mx = form_data.get('maximum_discount')
             dc = form_data.get('discount')
             if isinstance(mp, Decimal):
-                if mp < 2000 or mp > 5000:
-                    errors['minimum_purchase'] = "Minimum purchase must be between ₹2,000 and ₹5,000."
+                if mp < 1000 :
+                    errors['minimum_purchase'] = "Minimum purchase must be greater than ₹2,000"
             if isinstance(mx, Decimal):
                 if mx < 1000 or mx > 4500:
                     errors['maximum_discount'] = "Maximum discount must be between ₹1,000 and ₹4,500."
@@ -166,8 +166,8 @@ def edit_coupon(request, coupon_id):
             mp = form_data['minimum_purchase']
             mx = form_data['maximum_discount']
             dc = form_data['discount']
-            if mp < 2000 or mp > 5000:
-                errors['minimum_purchase'] = "Minimum purchase must be between ₹2,000 and ₹5,000."
+            if mp < 1000 :
+                errors['minimum_purchase'] = "Minimum purchase must be greater than ₹1,000 "
             if mx < 1000 or mx > 4500:
                 errors['maximum_discount'] = "Maximum discount must be between ₹1,000 and ₹4,500."
             if isinstance(dc, Decimal) and dc > 70:
