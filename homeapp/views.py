@@ -9,9 +9,6 @@ def index(request):
         start_date__lte=timezone.now().date(),
         end_date__gte=timezone.now().date()
     )
-
-    if request.user.is_authenticated:
-        messages.success(request, 'The user {user.username} has logged in')
         
     return render(request, 'home/home.html', {'categories': categories,
         'category_offers': category_offers})
